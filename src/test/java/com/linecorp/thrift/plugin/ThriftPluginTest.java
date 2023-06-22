@@ -126,7 +126,6 @@ public class ThriftPluginTest {
                                                .withArguments(List.of("compileThrift", "--info"))
                                                .withPluginClasspath()
                                                .build();
-        System.out.println(gradle.getOutput());
 
         assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
         assertThat(gradle.getOutput()).contains(
