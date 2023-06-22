@@ -18,7 +18,6 @@ package com.linecorp.thrift.plugin;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,7 +42,7 @@ public class ThriftPluginTest {
     private Path thriftPath;
 
     @BeforeEach
-    public void setup() throws IOException {
+    public void setup() throws Exception {
         buildFile = projectDir.resolve("build.gradle");
         Files.writeString(buildFile,
                           "plugins { \n"
@@ -61,7 +60,7 @@ public class ThriftPluginTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "7.6" })
-    public void generateJavaOnly(String version) throws IOException {
+    public void generateJavaOnly(String version) throws Exception {
         Files.writeString(buildFile,
                           "    compileThrift {\n" +
                           "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
@@ -103,7 +102,7 @@ public class ThriftPluginTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "7.6" })
-    public void generateNonJava(String version) throws IOException {
+    public void generateNonJava(String version) throws Exception {
         Files.writeString(buildFile,
                           "    compileThrift {\n" +
                           "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
@@ -147,7 +146,7 @@ public class ThriftPluginTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "7.6" })
-    public void incremental(String version) throws IOException {
+    public void incremental(String version) throws Exception {
         Files.writeString(buildFile,
                           "    compileThrift {\n" +
                           "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
