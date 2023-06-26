@@ -22,8 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.List;
-import java.util.Set;
+import java.util.Arrays;
 
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -44,15 +43,15 @@ public class ThriftPluginTest {
     @BeforeEach
     public void setup() throws Exception {
         buildFile = projectDir.resolve("build.gradle");
-        Files.writeString(buildFile,
-                          "plugins { \n"
-                          + "id \"java\" \n"
-                          + "id \"org.jruyi.thrift\" \n"
-                          + "}\n",
-                          StandardOpenOption.CREATE);
+        Files.write(buildFile,
+                    Arrays.asList("plugins { \n"
+                                  + "id \"java\" \n"
+                                  + "id \"org.jruyi.thrift\" \n"
+                                  + "}\n"),
+                    StandardOpenOption.CREATE);
 
         Files.createDirectories(projectDir.resolve("src/main/thrift"));
-        Files.copy(Path.of("src/test/resources/test.thrift"),
+        Files.copy(Paths.get("src/test/resources/test.thrift"),
                    projectDir.resolve("src/main/thrift/test.thrift"));
 
         thriftPath = Paths.get("lib/thrift-0.17.0");
@@ -61,25 +60,26 @@ public class ThriftPluginTest {
     @ParameterizedTest
     @ValueSource(strings = { "7.6" })
     public void generateJavaOnly(String version) throws Exception {
-        Files.writeString(buildFile,
-                          "    compileThrift {\n" +
-                          "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
-                          "        sourceDir \"src/main/thrift\"\n" +
-                          "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
-                          "        nowarn true\n" +
-                          "        strict true\n" +
-                          "        verbose true\n" +
-                          "        recurse true\n" +
-                          "        debug true\n" +
-                          "        createGenFolder false\n" +
-                          "        generator 'java'\n" +
-                          "    }\n"
-                , StandardOpenOption.APPEND);
+        Files.write(buildFile,
+                    Arrays.asList(
+                            "    compileThrift {\n" +
+                            "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
+                            "        sourceDir \"src/main/thrift\"\n" +
+                            "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
+                            "        nowarn true\n" +
+                            "        strict true\n" +
+                            "        verbose true\n" +
+                            "        recurse true\n" +
+                            "        debug true\n" +
+                            "        createGenFolder false\n" +
+                            "        generator 'java'\n" +
+                            "    }\n"),
+                    StandardOpenOption.APPEND);
 
         final BuildResult gradle = GradleRunner.create()
                                                .withProjectDir(projectDir.toFile())
                                                .withGradleVersion(version)
-                                               .withArguments(List.of("compileThrift", "--info"))
+                                               .withArguments(Arrays.asList("compileThrift", "--info"))
                                                .withPluginClasspath()
                                                .build();
 
@@ -103,26 +103,27 @@ public class ThriftPluginTest {
     @ParameterizedTest
     @ValueSource(strings = { "7.6" })
     public void generateNonJava(String version) throws Exception {
-        Files.writeString(buildFile,
-                          "    compileThrift {\n" +
-                          "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
-                          "        sourceDir \"src/main/thrift\"\n" +
-                          "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
-                          "        nowarn true\n" +
-                          "        strict true\n" +
-                          "        verbose true\n" +
-                          "        recurse true\n" +
-                          "        debug true\n" +
-                          "        generator 'perl'\n" +
-                          "        generator 'html'\n" +
-                          "        generator 'json'\n" +
-                          "    }\n"
-                , StandardOpenOption.APPEND);
+        Files.write(buildFile,
+                    Arrays.asList(
+                            "    compileThrift {\n" +
+                            "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
+                            "        sourceDir \"src/main/thrift\"\n" +
+                            "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
+                            "        nowarn true\n" +
+                            "        strict true\n" +
+                            "        verbose true\n" +
+                            "        recurse true\n" +
+                            "        debug true\n" +
+                            "        generator 'perl'\n" +
+                            "        generator 'html'\n" +
+                            "        generator 'json'\n" +
+                            "    }\n"),
+                    StandardOpenOption.APPEND);
 
         final BuildResult gradle = GradleRunner.create()
                                                .withProjectDir(projectDir.toFile())
                                                .withGradleVersion(version)
-                                               .withArguments(List.of("compileThrift", "--info"))
+                                               .withArguments(Arrays.asList("compileThrift", "--info"))
                                                .withPluginClasspath()
                                                .build();
 
@@ -136,48 +137,54 @@ public class ThriftPluginTest {
                 + "/src/main/thrift/test.thrift"
         );
         assertThat(projectDir.resolve("build/generated-sources/thrift/gen-html"))
-                .isDirectoryContaining(path -> Set.of("index.html", "test.html", "style.css")
-                                                  .contains(path.getFileName().toString()));
+                .isDirectoryContaining(path -> path.getFileName().toString().equals("index.html"))
+                .isDirectoryContaining(path -> path.getFileName().toString().equals("test.html"))
+                .isDirectoryContaining(path -> path.getFileName().toString().equals("style.css"));
         assertThat(projectDir.resolve("build/generated-sources/thrift/gen-perl"))
-                .isDirectoryContaining(path -> Set.of("Constants.pm", "Types.pm", "TestService.pm")
-                                                  .contains(path.getFileName().toString()));
+                .isDirectoryContaining(path -> path.getFileName().toString().equals("Constants.pm"))
+                .isDirectoryContaining(path -> path.getFileName().toString().equals("Types.pm"))
+                .isDirectoryContaining(path -> path.getFileName().toString().equals("TestService.pm"));
         assertThat(projectDir.resolve("build/generated-sources/thrift/gen-json/test.json")).exists();
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "7.6" })
     public void incremental(String version) throws Exception {
-        Files.writeString(buildFile,
-                          "    compileThrift {\n" +
-                          "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
-                          "        sourceDir \"src/main/thrift\"\n" +
-                          "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
-                          "        nowarn true\n" +
-                          "        strict true\n" +
-                          "        verbose true\n" +
-                          "        recurse true\n" +
-                          "        debug true\n" +
-                          "        createGenFolder false\n" +
-                          "        generator 'java'\n" +
-                          "    }\n"
-                , StandardOpenOption.APPEND);
+        Files.write(buildFile,
+                    Arrays.asList(
+                            "    compileThrift {\n" +
+                            "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
+                            "        sourceDir \"src/main/thrift\"\n" +
+                            "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
+                            "        nowarn true\n" +
+                            "        strict true\n" +
+                            "        verbose true\n" +
+                            "        recurse true\n" +
+                            "        debug true\n" +
+                            "        createGenFolder false\n" +
+                            "        generator 'java'\n" +
+                            "    }\n"
+                    ),
+                    StandardOpenOption.APPEND);
 
         final Path test2Thrift = projectDir.resolve("src/main/thrift/test2.thrift");
-        Files.copy(Path.of("src/test/resources/test2.thrift"),
+        Files.copy(Paths.get("src/test/resources/test2.thrift"),
                    test2Thrift);
 
         final GradleRunner runner = GradleRunner.create()
                                                 .withProjectDir(projectDir.toFile())
                                                 .withGradleVersion(version)
-                                                .withArguments(List.of("compileThrift", "--info"))
+                                                .withArguments(Arrays.asList("compileThrift", "--info"))
                                                 .withPluginClasspath();
         runner.build();
 
-        Files.writeString(test2Thrift,
-                          "    struct TestStruct3 {\n" +
-                          "        1:required i32 num = 0,\n" +
-                          "    }\n",
-                          StandardOpenOption.APPEND);
+        Files.write(test2Thrift,
+                    Arrays.asList(
+                            "    struct TestStruct3 {\n" +
+                            "        1:required i32 num = 0,\n" +
+                            "    }\n"
+                    ),
+                    StandardOpenOption.APPEND);
 
         final BuildResult gradle = runner.build();
 
