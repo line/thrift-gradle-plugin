@@ -22,7 +22,6 @@ plugins {
 	id 'java-gradle-plugin'
 }
 
-apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 
 group = 'org.jruyi.gradle'
@@ -35,18 +34,10 @@ repositories {
 }
 
 dependencies {
-	implementation gradleApi()
-	implementation localGroovy()
 	testImplementation "org.assertj:assertj-core:3.24.2"
 	testImplementation "org.junit.jupiter:junit-jupiter:5.9.3"
 	testImplementation "org.mockito:mockito-junit-jupiter:5.4.0"
 	testImplementation "org.mockito.kotlin:mockito-kotlin:5.0.0"
-}
-
-compileGroovy {
-	sourceCompatibility = 1.6
-	targetCompatibility = 1.6
-	options.encoding = 'UTF-8'
 }
 
 tasks.named('test') {
