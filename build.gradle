@@ -1,19 +1,25 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Based on jruyi/thrift-gradle-plugin/../build.gradle
+ * Modified 2023 LINE Corporation
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright 2023 LINE Corporation
+ *
+ * LINE Corporation licenses this file to you under the Apache License,
+ * version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
  */
 
 plugins {
 	id 'com.gradle.plugin-publish' version '0.14.0'
+	id 'java-gradle-plugin'
 }
 
 apply plugin: 'groovy'
@@ -24,36 +30,17 @@ archivesBaseName = 'thrift-gradle-plugin'
 version = '0.4.2'
 description = 'A gradle plugin for compiling Thrift IDL files using thrift compiler'
 
-ext {
-	title = 'Gradle Thrift Plugin'
-	organizationId = 'org.jruyi'
-	organizationName = 'JRuyi.org'
-	organizationUrl = 'http://www.jruyi.org/'
-
-	websiteUrl = 'https://github.com/jruyi/thrift-gradle-plugin'
-	issueTrackerUrl = 'https://github.com/jruyi/thrift-gradle-plugin/issues'
-	vcsUrl = 'https://github.com/jruyi/thrift-gradle-plugin.git'
-
-	licenseName = 'Apache License, Version 2.0'
-	licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-
-	createdBy = "${System.getProperty('java.version')} (${System.getProperty('java.vm.vendor')})"
-}
-
-configurations.all {
-	transitive = false
+repositories {
+	mavenCentral()
 }
 
 dependencies {
-	compile gradleApi()
-	compile localGroovy()
-}
-
-processResources {
-
-	from(['LICENSE', 'NOTICE']) {
-		into 'META-INF'
-	}
+	implementation gradleApi()
+	implementation localGroovy()
+	testImplementation "org.assertj:assertj-core:3.24.2"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.9.3"
+	testImplementation "org.mockito:mockito-junit-jupiter:5.4.0"
+	testImplementation "org.mockito.kotlin:mockito-kotlin:5.0.0"
 }
 
 compileGroovy {
@@ -62,67 +49,6 @@ compileGroovy {
 	options.encoding = 'UTF-8'
 }
 
-jar {
-	manifest {
-		attributes(
-				'Specification-Title': title,
-				'Specification-Version': version,
-				'Specification-Vendor': organizationName,
-				'Implementation-Title': title,
-				'Implementation-Version': version,
-				'Implementation-Vendor': organizationName,
-				'Implementation-Vendor-Id': organizationId,
-				'Implementation-Vendor-URL': organizationUrl,
-				'Created-By': createdBy,
-		)
-	}
+tasks.named('test') {
+	useJUnitPlatform()
 }
-
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-
-			artifactId archivesBaseName
-
-			from components.java
-
-			pom.withXml {
-				def node = asNode()
-				node.children().last() + {
-					resolveStrategy = Closure.DELEGATE_FIRST
-					name title
-					description description
-					url websiteUrl
-					inceptionYear '2014'
-					scm {
-						url websiteUrl
-						connection "scm:$vcsUrl"
-						developerConnection "scm:$vcsUrl"
-					}
-					licenses {
-						license {
-							name licenseName
-							url licenseUrl
-							distribution 'repo'
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-pluginBundle {
-	website = 'https://github.com/jruyi/thrift-gradle-plugin'
-	vcsUrl = 'https://github.com/jruyi/thrift-gradle-plugin.git'
-	description = "${project.description}"
-	tags = ['thrift']
-
-	plugins {
-		thriftPlugin {
-			id = 'org.jruyi.thrift'
-			displayName = title
-		}
-	}
-}
-
