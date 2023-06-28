@@ -1,20 +1,36 @@
-buildscript {
-	repositories {
-		mavenLocal()
-		jcenter()
-	}
-	dependencies {
-		classpath 'org.jruyi.gradle:thrift-gradle-plugin:+'
-	}
+/*
+ * Based on jruyi/thrift-gradle-plugin/../examples/test2/build.gradle
+ * Modified 2023 LINE Corporation
+ *
+ * Copyright 2023 LINE Corporation
+ *
+ * LINE Corporation licenses this file to you under the Apache License,
+ * version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+
+plugins {
+    id 'java'
+    id 'com.google.osdetector' version '1.7.3'
+    id 'com.linecorp.thrift-gradle-plugin' version '+'
 }
 
-apply plugin: 'java'
-apply plugin: 'org.jruyi.thrift'
-
 repositories {
-	jcenter()
+    mavenCentral()
 }
 
 dependencies {
-	compile 'org.apache.thrift:libthrift:0.14.1'
+    implementation 'org.apache.thrift:libthrift:0.14.1'
+}
+
+compileThrift {
+    thriftExecutable "../../lib/thrift/0.17.0/thrift.${osdetector.classifier}"
 }
