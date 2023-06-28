@@ -25,14 +25,14 @@ jobs:
         run: ./gradlew test
 
       - name: Upload test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success() || failure()
         with:
           name: test-results
           path: build/test-results/**/*.xml
 
       - name: Upload test report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success() || failure()
         with:
           name: test-report
