@@ -14,6 +14,25 @@
 
 package org.jruyi.gradle.thrift.plugin;
 
+import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
+import org.gradle.api.Task;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.process.ExecResult;
+import org.gradle.work.ChangeType;
+import org.gradle.work.FileChange;
+import org.gradle.work.Incremental;
+import org.gradle.work.InputChanges;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -25,25 +44,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.codehaus.groovy.runtime.ResourceGroovyMethods;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
-import org.gradle.api.Task;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.process.ExecResult;
+public abstract class CompileThrift extends DefaultTask {
 
-public class CompileThrift extends DefaultTask {
-
+    @Incremental
     @InputFiles
-    Set<File> sourceItems = new HashSet<>();
+    abstract public ConfigurableFileCollection getSourceItems();
 
     @OutputDirectory
     File outputDir;
@@ -83,10 +88,6 @@ public class CompileThrift extends DefaultTask {
 
     public File getOutputDir() {
         return outputDir;
-    }
-
-    public Set<File> getSourceItems() {
-        return sourceItems;
     }
 
     public Set<File> getIncludeDirs() {
@@ -179,7 +180,7 @@ public class CompileThrift extends DefaultTask {
 
     void sourceItems(Object... sourceItems) {
         for (Object sourceItem : sourceItems) {
-            this.sourceItems.add(convertToFile(sourceItem));
+            getSourceItems().from(convertToFile(sourceItem));
         }
     }
 
@@ -227,27 +228,22 @@ public class CompileThrift extends DefaultTask {
     }
 
     @TaskAction
-    void compileThrift(IncrementalTaskInputs inputs) {
+    void compileThrift(InputChanges inputs) {
         if (!inputs.isIncremental()) {
             compileAll();
             return;
         }
 
-        List<File> changedFiles = new ArrayList<>();
-        inputs.outOfDate(change -> {
+        final List<File> changedFiles = new ArrayList<>();
+        final Iterable<FileChange> fileChanges = inputs.getFileChanges(getSourceItems());
+        for (FileChange change : fileChanges) {
+            if (change.getChangeType() == ChangeType.REMOVED) {
+                compileAll();
+                return;
+            }
             if (change.getFile().getName().endsWith(".thrift")) {
                 changedFiles.add(change.getFile());
             }
-        });
-
-        final boolean[] removed = new boolean[] { false };
-        inputs.removed(change -> {
-            removed[0] = true;
-        });
-
-        if (removed[0]) {
-            compileAll();
-            return;
         }
 
         if (!outputDir.exists() && !outputDir.mkdirs()) {
@@ -274,7 +270,7 @@ public class CompileThrift extends DefaultTask {
 
         // expand all items.
         Set<String> resolvedSourceItems = new HashSet<>();
-        sourceItems.forEach(sourceItem -> {
+        getSourceItems().forEach(sourceItem -> {
             if (sourceItem.isFile()) {
                 resolvedSourceItems.add(sourceItem.getAbsolutePath());
             } else if (sourceItem.isDirectory()) {

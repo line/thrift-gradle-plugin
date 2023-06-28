@@ -16,14 +16,6 @@
 
 package com.linecorp.thrift.plugin;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.TaskOutcome;
@@ -31,6 +23,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ThriftPluginTest {
     @TempDir
@@ -44,23 +44,23 @@ public class ThriftPluginTest {
     public void setup() throws Exception {
         buildFile = projectDir.resolve("build.gradle");
         Files.write(buildFile,
-                    Arrays.asList("plugins { \n"
-                                  + "id \"java\" \n"
-                                  + "id \"org.jruyi.thrift\" \n"
-                                  + "id \"com.google.osdetector\" version \"1.7.3\" \n"
-                                  + "}\n"),
-                    StandardOpenOption.CREATE);
+                Arrays.asList("plugins { \n" +
+                        "          id \"java\" \n" +
+                        "          id \"org.jruyi.thrift\" \n" +
+                        "          id \"com.google.osdetector\" version \"1.7.3\" \n" +
+                        "      }\n"),
+                StandardOpenOption.CREATE);
 
         Files.createDirectories(projectDir.resolve("src/main/thrift"));
         Files.copy(Paths.get("src/test/resources/test.thrift"),
-                   projectDir.resolve("src/main/thrift/test.thrift"));
+                projectDir.resolve("src/main/thrift/test.thrift"));
 
-        thriftPathExpression = Paths.get("lib/thrift/0.17.0").toAbsolutePath()
-                               + "/thrift.${osdetector.classifier}";
+        thriftPathExpression = Paths.get("lib/thrift/0.17.0").toAbsolutePath() +
+                "/thrift.${osdetector.classifier}";
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "7.6" })
+    @ValueSource(strings = {"7.6", "8.0", "8.1"})
     public void generateJavaWithoutGenFolder(String version) throws Exception {
         Files.write(buildFile,
                     Arrays.asList(
@@ -113,7 +113,7 @@ public class ThriftPluginTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "7.6" })
+    @ValueSource(strings = {"7.6", "8.0", "8.1"})
     public void generateJava(String version) throws Exception {
         Files.write(buildFile,
                     Arrays.asList(
@@ -176,7 +176,7 @@ public class ThriftPluginTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "7.6" })
+    @ValueSource(strings = {"7.6", "8.0", "8.1"})
     public void generateNonJava(String version) throws Exception {
         Files.write(buildFile,
                     Arrays.asList(
@@ -223,7 +223,7 @@ public class ThriftPluginTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "7.6" })
+    @ValueSource(strings = {"7.6", "8.0", "8.1"})
     public void incremental(String version) throws Exception {
         Files.write(buildFile,
                     Arrays.asList(

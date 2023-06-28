@@ -18,16 +18,8 @@
  */
 
 plugins {
-	id 'com.gradle.plugin-publish' version '0.14.0'
 	id 'java-gradle-plugin'
 }
-
-apply plugin: 'maven-publish'
-
-group = 'org.jruyi.gradle'
-archivesBaseName = 'thrift-gradle-plugin'
-version = '0.4.2'
-description = 'A gradle plugin for compiling Thrift IDL files using thrift compiler'
 
 repositories {
 	mavenCentral()
