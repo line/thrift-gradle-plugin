@@ -365,7 +365,7 @@ public class CompileThrift extends DefaultTask {
         SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
 
         if (oldOutputDir != null) {
-            Set<File> filteredJavaSrcDirs = sourceSet.getJava().getSourceDirectories().filter(
+            final Set<File> filteredJavaSrcDirs = sourceSet.getJava().getSourceDirectories().filter(
                     file -> !file.equals(oldOutputDir)).getFiles();
             sourceSet.getJava().setSrcDirs(filteredJavaSrcDirs);
         }

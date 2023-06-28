@@ -17,7 +17,7 @@ package org.jruyi.gradle.thrift.plugin;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
-class ThriftPlugin implements Plugin<Project> {
+public class ThriftPlugin implements Plugin<Project> {
 
     public static final String COMPILE_THRIFT_TASK = "compileThrift";
 

@@ -61,7 +61,60 @@ public class ThriftPluginTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "7.6" })
-    public void generateJavaOnly(String version) throws Exception {
+    public void generateJavaWithoutGenFolder(String version) throws Exception {
+        Files.write(buildFile,
+                    Arrays.asList(
+                            "    compileThrift {\n" +
+                            "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        sourceDir \"src/main/thrift\"\n" +
+                            "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
+                            "        createGenFolder false\n" +
+                            "        generator 'java'\n" +
+                            "    }\n" +
+                            "    task printJavaSourceDirs(type: DefaultTask) {\n" +
+                            "        def sourceSet = project.sourceSets.main \n" +
+                            "        def javaSourceDirs = sourceSet.java.srcDirs\n" +
+                            "        doLast {\n" +
+                            "            \n" +
+                            "            javaSourceDirs.each { dir ->\n" +
+                            "                println \"'javaSourceDir - $dir'\"\n" +
+                            "            }\n" +
+                            "        }\n" +
+                            "     }\n"),
+                    StandardOpenOption.APPEND);
+
+        final BuildResult gradle = GradleRunner.create()
+                                               .withProjectDir(projectDir.toFile())
+                                               .withGradleVersion(version)
+                                               .withArguments(Arrays.asList("compileThrift",
+                                                                            "printJavaSourceDirs",
+                                                                            "--info"))
+                                               .withPluginClasspath()
+                                               .build();
+
+        assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(gradle.getOutput()).contains("-out " + projectDir.toFile().getCanonicalPath());
+        assertThat(projectDir.resolve("build/generated-sources/thrift")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService.java")
+        ).exists();
+        assertThat(projectDir.resolve("build/generated-sources/thrift")
+                             .resolve("com/linecorp/thrift/plugin/test/TestStruct.java")
+        ).exists();
+
+        assertThat(gradle.getOutput()).contains(
+                "'javaSourceDir - " +
+                projectDir.resolve("build/generated-sources/thrift").toFile().getCanonicalPath()
+                + "'");
+
+        assertThat(gradle.getOutput()).doesNotContain(
+                "'javaSourceDir - " +
+                projectDir.resolve("build/generated-sources/thrift/gen-java").toFile().getCanonicalPath()
+                + "'");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "7.6" })
+    public void generateJava(String version) throws Exception {
         Files.write(buildFile,
                     Arrays.asList(
                             "    compileThrift {\n" +
@@ -73,33 +126,53 @@ public class ThriftPluginTest {
                             "        verbose true\n" +
                             "        recurse true\n" +
                             "        debug true\n" +
-                            "        createGenFolder false\n" +
                             "        generator 'java'\n" +
-                            "    }\n"),
+                            "    }\n" +
+                            "    task printJavaSourceDirs(type: DefaultTask) {\n" +
+                            "        def sourceSet = project.sourceSets.main \n" +
+                            "        def javaSourceDirs = sourceSet.java.srcDirs\n" +
+                            "        doLast {\n" +
+                            "            \n" +
+                            "            javaSourceDirs.each { dir ->\n" +
+                            "                println \"'javaSourceDir - $dir'\"\n" +
+                            "            }\n" +
+                            "        }\n" +
+                            "     }\n"),
                     StandardOpenOption.APPEND);
 
         final BuildResult gradle = GradleRunner.create()
                                                .withProjectDir(projectDir.toFile())
                                                .withGradleVersion(version)
-                                               .withArguments(Arrays.asList("compileThrift", "--info"))
+                                               .withArguments(Arrays.asList("compileThrift",
+                                                                            "printJavaSourceDirs",
+                                                                            "--info"))
                                                .withPluginClasspath()
                                                .build();
 
         assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
         assertThat(gradle.getOutput()).contains(
-                "-out "
+                "-o "
                 + projectDir.toFile().getCanonicalPath()
                 + "/build/generated-sources/thrift --gen java"
                 + " -r -nowarn -strict -v -debug "
                 + projectDir.toFile().getCanonicalPath()
                 + "/src/main/thrift/test.thrift"
         );
-        assertThat(projectDir.resolve("build/generated-sources/thrift/")
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
                              .resolve("com/linecorp/thrift/plugin/test/TestService.java")
         ).exists();
-        assertThat(projectDir.resolve("build/generated-sources/thrift/")
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
                              .resolve("com/linecorp/thrift/plugin/test/TestStruct.java")
         ).exists();
+
+        assertThat(gradle.getOutput()).contains(
+                "'javaSourceDir - " +
+                projectDir.resolve("build/generated-sources/thrift/gen-java").toFile().getCanonicalPath()
+                + "'");
+        assertThat(gradle.getOutput()).doesNotContain(
+                "'javaSourceDir - " +
+                projectDir.resolve("build/generated-sources/thrift").toFile().getCanonicalPath()
+                + "'");
     }
 
     @ParameterizedTest
