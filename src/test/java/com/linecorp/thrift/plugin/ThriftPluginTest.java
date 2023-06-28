@@ -38,7 +38,7 @@ public class ThriftPluginTest {
 
     private Path buildFile;
 
-    private Path thriftPath;
+    private String thriftPathExpression;
 
     @BeforeEach
     public void setup() throws Exception {
@@ -47,6 +47,7 @@ public class ThriftPluginTest {
                     Arrays.asList("plugins { \n"
                                   + "id \"java\" \n"
                                   + "id \"org.jruyi.thrift\" \n"
+                                  + "id \"com.google.osdetector\" version \"1.7.3\" \n"
                                   + "}\n"),
                     StandardOpenOption.CREATE);
 
@@ -54,7 +55,8 @@ public class ThriftPluginTest {
         Files.copy(Paths.get("src/test/resources/test.thrift"),
                    projectDir.resolve("src/main/thrift/test.thrift"));
 
-        thriftPath = Paths.get("lib/thrift-0.17.0");
+        thriftPathExpression = Paths.get("lib/thrift/0.17.0").toAbsolutePath()
+                               + "/thrift.${osdetector.classifier}";
     }
 
     @ParameterizedTest
@@ -63,7 +65,7 @@ public class ThriftPluginTest {
         Files.write(buildFile,
                     Arrays.asList(
                             "    compileThrift {\n" +
-                            "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
+                            "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
                             "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
                             "        nowarn true\n" +
@@ -85,7 +87,7 @@ public class ThriftPluginTest {
 
         assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
         assertThat(gradle.getOutput()).contains(
-                "thrift-0.17.0 -out "
+                "-out "
                 + projectDir.toFile().getCanonicalPath()
                 + "/build/generated-sources/thrift --gen java"
                 + " -r -nowarn -strict -v -debug "
@@ -106,7 +108,7 @@ public class ThriftPluginTest {
         Files.write(buildFile,
                     Arrays.asList(
                             "    compileThrift {\n" +
-                            "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
+                            "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
                             "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
                             "        nowarn true\n" +
@@ -129,7 +131,7 @@ public class ThriftPluginTest {
 
         assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
         assertThat(gradle.getOutput()).contains(
-                "thrift-0.17.0 -o "
+                "-o "
                 + projectDir.toFile().getCanonicalPath()
                 + "/build/generated-sources/thrift --gen java --gen perl --gen html --gen json"
                 + " -r -nowarn -strict -v -debug "
@@ -153,7 +155,7 @@ public class ThriftPluginTest {
         Files.write(buildFile,
                     Arrays.asList(
                             "    compileThrift {\n" +
-                            "        thriftExecutable \"" + thriftPath.toAbsolutePath() + "\"\n" +
+                            "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
                             "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
                             "        nowarn true\n" +
