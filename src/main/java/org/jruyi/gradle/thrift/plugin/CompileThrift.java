@@ -1,4 +1,19 @@
 /*
+ * Copyright 2023 LINE Corporation
+ *
+ * LINE Corporation licenses this file to you under the Apache License,
+ * version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -190,7 +205,7 @@ public class CompileThrift extends DefaultTask {
         if (this.outputDir == outputDir) {
             return;
         }
-        File oldOutputDir = currentOutputDir();
+        final File oldOutputDir = currentOutputDir();
         this.outputDir = (File) outputDir;
         addSourceDir(oldOutputDir);
     }
@@ -204,7 +219,7 @@ public class CompileThrift extends DefaultTask {
     }
 
     void generator(String gen, String... args) {
-        String options;
+        final String options;
         if (args == null || args.length < 1) {
             options = "";
         } else {
@@ -221,7 +236,7 @@ public class CompileThrift extends DefaultTask {
         if (this.createGenFolder == createGenFolder) {
             return;
         }
-        File oldOutputDir = currentOutputDir();
+        final File oldOutputDir = currentOutputDir();
         this.createGenFolder = createGenFolder;
         addSourceDir(oldOutputDir);
     }
@@ -233,7 +248,7 @@ public class CompileThrift extends DefaultTask {
             return;
         }
 
-        List<File> changedFiles = new ArrayList<>();
+        final List<File> changedFiles = new ArrayList<>();
         inputs.outOfDate(change -> {
             if (change.getFile().getName().endsWith(".thrift")) {
                 changedFiles.add(change.getFile());
@@ -273,7 +288,7 @@ public class CompileThrift extends DefaultTask {
         }
 
         // expand all items.
-        Set<String> resolvedSourceItems = new HashSet<>();
+        final Set<String> resolvedSourceItems = new HashSet<>();
         sourceItems.forEach(sourceItem -> {
             if (sourceItem.isFile()) {
                 resolvedSourceItems.add(sourceItem.getAbsolutePath());
@@ -304,7 +319,7 @@ public class CompileThrift extends DefaultTask {
             cmdLine.add("--gen");
 
             String cmd = key.trim();
-            String options = value.trim();
+            final String options = value.trim();
             if (!options.isEmpty()) {
                 cmd += ':' + options;
             }
@@ -333,18 +348,18 @@ public class CompileThrift extends DefaultTask {
         }
         cmdLine.add(source);
 
-        ExecResult result = getProject().exec(execSpec -> {
+        final ExecResult result = getProject().exec(execSpec -> {
             execSpec.commandLine(cmdLine);
         });
 
-        int exitCode = result.getExitValue();
+        final int exitCode = result.getExitValue();
         if (exitCode != 0) {
             throw new GradleException("Failed to compile " + source + ", exit=" + exitCode);
         }
     }
 
     void makeAsDependency(File oldOutputDir) {
-        Task compileJava = getProject().getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
+        final Task compileJava = getProject().getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
         if (compileJava == null) {
             return;
         }
@@ -360,9 +375,9 @@ public class CompileThrift extends DefaultTask {
             return;
         }
 
-        SourceSetContainer sourceSetContainer = getProject().getExtensions().getByType(
+        final SourceSetContainer sourceSetContainer = getProject().getExtensions().getByType(
                 SourceSetContainer.class);
-        SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        final SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
 
         if (oldOutputDir != null) {
             final Set<File> filteredJavaSrcDirs = sourceSet.getJava().getSourceDirectories().filter(
@@ -391,7 +406,7 @@ public class CompileThrift extends DefaultTask {
             return (File) item;
         }
 
-        File result = new File(item.toString());
+        final File result = new File(item.toString());
         if (result.exists()) {
             return result;
         }
