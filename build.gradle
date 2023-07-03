@@ -23,6 +23,7 @@ plugins {
 }
 
 apply plugin: 'maven-publish'
+apply plugin: 'checkstyle'
 
 group = 'org.jruyi.gradle'
 archivesBaseName = 'thrift-gradle-plugin'
@@ -38,6 +39,15 @@ dependencies {
 	testImplementation "org.junit.jupiter:junit-jupiter:5.9.3"
 	testImplementation "org.mockito:mockito-junit-jupiter:5.4.0"
 	testImplementation "org.mockito.kotlin:mockito-kotlin:5.0.0"
+}
+
+def checkstyleConfigDir = rootProject.file('settings/checkstyle/')
+checkstyle {
+	configFile = new File(checkstyleConfigDir, 'checkstyle.xml')
+	configProperties = ['checkstyleConfigDir': "$checkstyleConfigDir"]
+	ignoreFailures = true
+	reportsDir = project.file('build/checkstyle')
+	toolVersion = '9.3'
 }
 
 tasks.named('test') {
