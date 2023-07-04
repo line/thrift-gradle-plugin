@@ -6,15 +6,12 @@ jobs:
   test:
     name: test (JDK ${{ matrix.java }})
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        java: [ '8', '11' ]
     steps:
       - name: actions/setup-java@v3 (JDK ${{ matrix.java }})
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: ${{ matrix.java }}
+          java-version: 17
           architecture: x64
       - uses: actions/checkout@v3
         with:
