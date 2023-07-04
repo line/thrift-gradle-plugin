@@ -22,12 +22,6 @@ plugins {
 	id 'java-gradle-plugin'
 }
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(8)
-	}
-}
-
 apply plugin: 'maven-publish'
 apply plugin: 'checkstyle'
 
@@ -53,7 +47,7 @@ checkstyle {
 	configProperties = ['checkstyleConfigDir': "$checkstyleConfigDir"]
 	ignoreFailures = true
 	reportsDir = project.file('build/checkstyle')
-	toolVersion = '10.12.1'
+	toolVersion = '9.3'
 }
 
 tasks.named('test') {
