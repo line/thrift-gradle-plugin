@@ -43,7 +43,6 @@ def checkstyleConfigDir = rootProject.file('settings/checkstyle/')
 checkstyle {
     configFile = new File(checkstyleConfigDir, 'checkstyle.xml')
     configProperties = ['checkstyleConfigDir': "$checkstyleConfigDir"]
-    ignoreFailures = true
     reportsDir = project.file('build/checkstyle')
     toolVersion = '10.12.1'
 }
