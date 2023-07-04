@@ -230,21 +230,21 @@ public class ThriftPluginTest {
     @ValueSource(strings = {"7.6", "8.0", "8.1"})
     public void incremental(String version) throws Exception {
         Files.write(buildFile,
-                Arrays.asList(
-                        "    compileThrift {\n" +
-                                "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
-                                "        sourceDir \"src/main/thrift\"\n" +
-                                "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
-                                "        nowarn true\n" +
-                                "        strict true\n" +
-                                "        verbose true\n" +
-                                "        recurse true\n" +
-                                "        debug true\n" +
-                                "        createGenFolder false\n" +
-                                "        generator 'java'\n" +
-                                "    }\n"
-                ),
-                StandardOpenOption.APPEND);
+                    Collections.singletonList(
+                            "    compileThrift {\n" +
+                            "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        sourceDir \"src/main/thrift\"\n" +
+                            "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
+                            "        nowarn true\n" +
+                            "        strict true\n" +
+                            "        verbose true\n" +
+                            "        recurse true\n" +
+                            "        debug true\n" +
+                            "        createGenFolder false\n" +
+                            "        generator 'java'\n" +
+                            "    }\n"
+                    ),
+                    StandardOpenOption.APPEND);
 
         final Path test2Thrift = projectDir.resolve("src/main/thrift/test2.thrift");
         Files.copy(Paths.get("src/test/resources/test2.thrift"),
