@@ -18,31 +18,42 @@
  */
 
 plugins {
-	id 'java-gradle-plugin'
+    id 'checkstyle'
+    id 'java-gradle-plugin'
 }
 
-apply plugin: 'checkstyle'
-
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	testImplementation "org.assertj:assertj-core:3.24.2"
-	testImplementation "org.junit.jupiter:junit-jupiter:5.9.3"
-	testImplementation "org.mockito:mockito-junit-jupiter:5.4.0"
-	testImplementation "org.mockito.kotlin:mockito-kotlin:5.0.0"
+    testImplementation "org.assertj:assertj-core:3.24.2"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.9.3"
+    testImplementation "org.mockito:mockito-junit-jupiter:5.4.0"
+    testImplementation "org.mockito.kotlin:mockito-kotlin:5.0.0"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
 }
 
 def checkstyleConfigDir = rootProject.file('settings/checkstyle/')
 checkstyle {
-	configFile = new File(checkstyleConfigDir, 'checkstyle.xml')
-	configProperties = ['checkstyleConfigDir': "$checkstyleConfigDir"]
-	ignoreFailures = true
-	reportsDir = project.file('build/checkstyle')
-	toolVersion = '9.3'
+    configFile = new File(checkstyleConfigDir, 'checkstyle.xml')
+    configProperties = ['checkstyleConfigDir': "$checkstyleConfigDir"]
+    ignoreFailures = true
+    reportsDir = project.file('build/checkstyle')
+    toolVersion = '10.12.1'
+}
+
+tasks.withType(Checkstyle).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
