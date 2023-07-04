@@ -40,7 +40,7 @@ public class ThriftPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        CompileThrift compileThrift = project.getTasks().create(COMPILE_THRIFT_TASK, CompileThrift.class);
+        final CompileThrift compileThrift = project.getTasks().create(COMPILE_THRIFT_TASK, CompileThrift.class);
         compileThrift.sourceDir(project.getProjectDir() + "src/main/thrift");
         compileThrift.outputDir(project.getBuildDir() + "/generated-sources/thrift");
     }

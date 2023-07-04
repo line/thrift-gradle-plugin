@@ -44,19 +44,19 @@ public class ThriftPluginTest {
     public void setup() throws Exception {
         buildFile = projectDir.resolve("build.gradle");
         Files.write(buildFile,
-                Arrays.asList("plugins { \n" +
-                        "          id \"java\" \n" +
-                        "          id \"org.jruyi.thrift\" \n" +
-                        "          id \"com.google.osdetector\" version \"1.7.3\" \n" +
-                        "      }\n"),
-                StandardOpenOption.CREATE);
+                    Arrays.asList("plugins { \n" +
+                                  "id \"java\" \n" +
+                                  "id \"org.jruyi.thrift\" \n" +
+                                  "id \"com.google.osdetector\" version \"1.7.3\" \n" +
+                                  "}\n"),
+                    StandardOpenOption.CREATE);
 
         Files.createDirectories(projectDir.resolve("src/main/thrift"));
         Files.copy(Paths.get("src/test/resources/test.thrift"),
                 projectDir.resolve("src/main/thrift/test.thrift"));
 
         thriftPathExpression = Paths.get("lib/thrift/0.17.0").toAbsolutePath() +
-                "/thrift.${osdetector.classifier}";
+                               "/thrift.${osdetector.classifier}";
     }
 
     @ParameterizedTest
@@ -103,13 +103,13 @@ public class ThriftPluginTest {
 
         assertThat(gradle.getOutput()).contains(
                 "'javaSourceDir - " +
-                projectDir.resolve("build/generated-sources/thrift").toFile().getCanonicalPath()
-                + "'");
+                projectDir.resolve("build/generated-sources/thrift").toFile().getCanonicalPath() +
+                '\'');
 
         assertThat(gradle.getOutput()).doesNotContain(
                 "'javaSourceDir - " +
-                projectDir.resolve("build/generated-sources/thrift/gen-java").toFile().getCanonicalPath()
-                + "'");
+                projectDir.resolve("build/generated-sources/thrift/gen-java").toFile().getCanonicalPath() +
+                '\'');
     }
 
     @ParameterizedTest
@@ -151,12 +151,12 @@ public class ThriftPluginTest {
 
         assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
         assertThat(gradle.getOutput()).contains(
-                "-o "
-                + projectDir.toFile().getCanonicalPath()
-                + "/build/generated-sources/thrift --gen java"
-                + " -r -nowarn -strict -v -debug "
-                + projectDir.toFile().getCanonicalPath()
-                + "/src/main/thrift/test.thrift"
+                "-o " +
+                projectDir.toFile().getCanonicalPath() +
+                "/build/generated-sources/thrift --gen java" +
+                " -r -nowarn -strict -v -debug " +
+                projectDir.toFile().getCanonicalPath() +
+                "/src/main/thrift/test.thrift"
         );
         assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
                              .resolve("com/linecorp/thrift/plugin/test/TestService.java")
@@ -167,12 +167,12 @@ public class ThriftPluginTest {
 
         assertThat(gradle.getOutput()).contains(
                 "'javaSourceDir - " +
-                projectDir.resolve("build/generated-sources/thrift/gen-java").toFile().getCanonicalPath()
-                + "'");
+                projectDir.resolve("build/generated-sources/thrift/gen-java").toFile().getCanonicalPath() +
+                '\'');
         assertThat(gradle.getOutput()).doesNotContain(
                 "'javaSourceDir - " +
-                projectDir.resolve("build/generated-sources/thrift").toFile().getCanonicalPath()
-                + "'");
+                projectDir.resolve("build/generated-sources/thrift").toFile().getCanonicalPath() +
+                '\'');
     }
 
     @ParameterizedTest
@@ -204,12 +204,12 @@ public class ThriftPluginTest {
 
         assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
         assertThat(gradle.getOutput()).contains(
-                "-o "
-                + projectDir.toFile().getCanonicalPath()
-                + "/build/generated-sources/thrift --gen java --gen perl --gen html --gen json"
-                + " -r -nowarn -strict -v -debug "
-                + projectDir.toFile().getCanonicalPath()
-                + "/src/main/thrift/test.thrift"
+                "-o " +
+                projectDir.toFile().getCanonicalPath() +
+                "/build/generated-sources/thrift --gen java --gen perl --gen html --gen json" +
+                " -r -nowarn -strict -v -debug " +
+                projectDir.toFile().getCanonicalPath() +
+                "/src/main/thrift/test.thrift"
         );
         assertThat(projectDir.resolve("build/generated-sources/thrift/gen-html"))
                 .isDirectoryContaining(path -> path.getFileName().toString().equals("index.html"))

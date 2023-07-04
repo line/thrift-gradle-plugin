@@ -208,7 +208,7 @@ public abstract class CompileThrift extends DefaultTask {
         if (this.outputDir == outputDir) {
             return;
         }
-        File oldOutputDir = currentOutputDir();
+        final File oldOutputDir = currentOutputDir();
         this.outputDir = (File) outputDir;
         addSourceDir(oldOutputDir);
     }
@@ -222,7 +222,7 @@ public abstract class CompileThrift extends DefaultTask {
     }
 
     void generator(String gen, String... args) {
-        String options;
+        final String options;
         if (args == null || args.length < 1) {
             options = "";
         } else {
@@ -239,7 +239,7 @@ public abstract class CompileThrift extends DefaultTask {
         if (this.createGenFolder == createGenFolder) {
             return;
         }
-        File oldOutputDir = currentOutputDir();
+        final File oldOutputDir = currentOutputDir();
         this.createGenFolder = createGenFolder;
         addSourceDir(oldOutputDir);
     }
@@ -286,7 +286,7 @@ public abstract class CompileThrift extends DefaultTask {
         }
 
         // expand all items.
-        Set<String> resolvedSourceItems = new HashSet<>();
+        final Set<String> resolvedSourceItems = new HashSet<>();
         getSourceItems().forEach(sourceItem -> {
             if (sourceItem.isFile()) {
                 resolvedSourceItems.add(sourceItem.getAbsolutePath());
@@ -317,7 +317,7 @@ public abstract class CompileThrift extends DefaultTask {
             cmdLine.add("--gen");
 
             String cmd = key.trim();
-            String options = value.trim();
+            final String options = value.trim();
             if (!options.isEmpty()) {
                 cmd += ':' + options;
             }
@@ -346,18 +346,18 @@ public abstract class CompileThrift extends DefaultTask {
         }
         cmdLine.add(source);
 
-        ExecResult result = getProject().exec(execSpec -> {
+        final ExecResult result = getProject().exec(execSpec -> {
             execSpec.commandLine(cmdLine);
         });
 
-        int exitCode = result.getExitValue();
+        final int exitCode = result.getExitValue();
         if (exitCode != 0) {
             throw new GradleException("Failed to compile " + source + ", exit=" + exitCode);
         }
     }
 
     void makeAsDependency(File oldOutputDir) {
-        Task compileJava = getProject().getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
+        final Task compileJava = getProject().getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
         if (compileJava == null) {
             return;
         }
@@ -373,9 +373,9 @@ public abstract class CompileThrift extends DefaultTask {
             return;
         }
 
-        SourceSetContainer sourceSetContainer = getProject().getExtensions().getByType(
+        final SourceSetContainer sourceSetContainer = getProject().getExtensions().getByType(
                 SourceSetContainer.class);
-        SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        final SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
 
         if (oldOutputDir != null) {
             final Set<File> filteredJavaSrcDirs = sourceSet.getJava().getSourceDirectories().filter(
@@ -404,7 +404,7 @@ public abstract class CompileThrift extends DefaultTask {
             return (File) item;
         }
 
-        File result = new File(item.toString());
+        final File result = new File(item.toString());
         if (result.exists()) {
             return result;
         }
