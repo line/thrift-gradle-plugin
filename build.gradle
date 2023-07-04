@@ -56,13 +56,16 @@ tasks.withType(Checkstyle).configureEach {
 // Test on multiple LTS versions to check if any API is removed in newer JDK.
 def javaVersions = [11, 17]
 javaVersions.each { version ->
-    tasks.register("testsOn$version", Test) {
+    def testOnSpecificVersion = tasks.register("testsOn$version", Test) {
         testClassesDirs = testing.suites.test.sources.output.classesDirs
         classpath = testing.suites.test.sources.runtimeClasspath
 
         javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(version)
         }
+    }
+    tasks.named('check').configure {
+        dependsOn(testOnSpecificVersion)
     }
 }
 

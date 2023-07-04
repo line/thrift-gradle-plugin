@@ -4,7 +4,7 @@ on:
     branches: [ "master" ]
 jobs:
   test:
-    name: test (JDK ${{ matrix.java }})
+    name: test
     runs-on: ubuntu-latest
     steps:
       - name: actions/setup-java@v3
