@@ -53,6 +53,19 @@ tasks.withType(Checkstyle).configureEach {
     }
 }
 
-tasks.named('test') {
+// Test on multiple LTS versions to check if any API is removed in newer JDK.
+def javaVersions = [11, 17]
+javaVersions.each { version ->
+    tasks.register("testsOn$version", Test) {
+        testClassesDirs = testing.suites.test.sources.output.classesDirs
+        classpath = testing.suites.test.sources.runtimeClasspath
+
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(version)
+        }
+    }
+}
+
+tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }
