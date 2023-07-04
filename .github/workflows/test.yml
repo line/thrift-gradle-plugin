@@ -24,7 +24,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
     
       - name: Execute Gradle build
-        run: ./gradlew build
+        run: ./gradlew build --stacktrace
 
       - name: Upload test results
         uses: actions/upload-artifact@v3
