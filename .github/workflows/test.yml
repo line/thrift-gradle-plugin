@@ -4,17 +4,17 @@ on:
     branches: [ "master" ]
 jobs:
   test:
-    name: test (JDK ${{ matrix.java }})
+    name: test
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        java: [ '8', '11' ]
     steps:
-      - name: actions/setup-java@v3 (JDK ${{ matrix.java }})
+      - name: actions/setup-java@v3
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: ${{ matrix.java }}
+          java-version: |
+            11
+            17
+            8
           architecture: x64
       - uses: actions/checkout@v3
         with:
@@ -22,9 +22,9 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-    
-      - name: Execute Gradle test
-        run: ./gradlew test check
+
+      - name: Execute Gradle build
+        run: ./gradlew build --stacktrace
 
       - name: Upload test results
         uses: actions/upload-artifact@v3

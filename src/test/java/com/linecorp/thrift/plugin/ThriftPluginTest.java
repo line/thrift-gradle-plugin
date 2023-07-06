@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -44,11 +45,12 @@ public class ThriftPluginTest {
     public void setup() throws Exception {
         buildFile = projectDir.resolve("build.gradle");
         Files.write(buildFile,
-                    Arrays.asList("plugins { \n" +
-                                  "id \"java\" \n" +
-                                  "id \"org.jruyi.thrift\" \n" +
-                                  "id \"com.google.osdetector\" version \"1.7.3\" \n" +
-                                  "}\n"),
+                    Collections.singletonList(
+                            "plugins { \n" +
+                            "id \"java\" \n" +
+                            "id \"org.jruyi.thrift\" \n" +
+                            "id \"com.google.osdetector\" version \"1.7.3\" \n" +
+                            "}\n"),
                     StandardOpenOption.CREATE);
 
         Files.createDirectories(projectDir.resolve("src/main/thrift"));
@@ -60,10 +62,10 @@ public class ThriftPluginTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "7.6" })
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateJavaWithoutGenFolder(String version) throws Exception {
         Files.write(buildFile,
-                    Arrays.asList(
+                    Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
@@ -108,15 +110,16 @@ public class ThriftPluginTest {
 
         assertThat(gradle.getOutput()).doesNotContain(
                 "'javaSourceDir - " +
-                projectDir.resolve("build/generated-sources/thrift/gen-java").toFile().getCanonicalPath() +
+                projectDir.resolve("build/generated-sources/thrift/gen-java").toFile()
+                          .getCanonicalPath() +
                 '\'');
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "7.6" })
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateJava(String version) throws Exception {
         Files.write(buildFile,
-                    Arrays.asList(
+                    Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
@@ -167,7 +170,8 @@ public class ThriftPluginTest {
 
         assertThat(gradle.getOutput()).contains(
                 "'javaSourceDir - " +
-                projectDir.resolve("build/generated-sources/thrift/gen-java").toFile().getCanonicalPath() +
+                projectDir.resolve("build/generated-sources/thrift/gen-java")
+                          .toFile().getCanonicalPath() +
                 '\'');
         assertThat(gradle.getOutput()).doesNotContain(
                 "'javaSourceDir - " +
@@ -176,10 +180,10 @@ public class ThriftPluginTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "7.6" })
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateNonJava(String version) throws Exception {
         Files.write(buildFile,
-                    Arrays.asList(
+                    Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
@@ -212,21 +216,21 @@ public class ThriftPluginTest {
                 "/src/main/thrift/test.thrift"
         );
         assertThat(projectDir.resolve("build/generated-sources/thrift/gen-html"))
-                .isDirectoryContaining(path -> path.getFileName().toString().equals("index.html"))
-                .isDirectoryContaining(path -> path.getFileName().toString().equals("test.html"))
-                .isDirectoryContaining(path -> path.getFileName().toString().equals("style.css"));
+                .isDirectoryContaining(path -> "index.html".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "test.html".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "style.css".equals(path.getFileName().toString()));
         assertThat(projectDir.resolve("build/generated-sources/thrift/gen-perl"))
-                .isDirectoryContaining(path -> path.getFileName().toString().equals("Constants.pm"))
-                .isDirectoryContaining(path -> path.getFileName().toString().equals("Types.pm"))
-                .isDirectoryContaining(path -> path.getFileName().toString().equals("TestService.pm"));
+                .isDirectoryContaining(path -> "Constants.pm".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "Types.pm".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "TestService.pm".equals(path.getFileName().toString()));
         assertThat(projectDir.resolve("build/generated-sources/thrift/gen-json/test.json")).exists();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "7.6" })
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void incremental(String version) throws Exception {
         Files.write(buildFile,
-                    Arrays.asList(
+                    Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
@@ -254,7 +258,7 @@ public class ThriftPluginTest {
         runner.build();
 
         Files.write(test2Thrift,
-                    Arrays.asList(
+                    Collections.singletonList(
                             "    struct TestStruct3 {\n" +
                             "        1:required i32 num = 0,\n" +
                             "    }\n"
