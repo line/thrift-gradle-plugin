@@ -14,9 +14,11 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: 17
           distribution: 'temurin'
-
+          java-version: |
+            8
+            17
+          architecture: x64
       - name: Publish plugins with gradle
         env:
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
