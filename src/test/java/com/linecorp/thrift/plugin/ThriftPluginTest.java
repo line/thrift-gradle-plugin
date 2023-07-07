@@ -63,6 +63,51 @@ public class ThriftPluginTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "7.6", "8.0", "8.1" })
+    public void generateJavaWithSimpleConfig(String version) throws Exception {
+        Files.write(buildFile,
+                    Collections.singletonList(
+                            "    compileThrift {\n" +
+                            "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "    }\n" +
+                            "    task printJavaSourceDirs(type: DefaultTask) {\n" +
+                            "        def sourceSet = project.sourceSets.main \n" +
+                            "        def javaSourceDirs = sourceSet.java.srcDirs\n" +
+                            "        doLast {\n" +
+                            "            \n" +
+                            "            javaSourceDirs.each { dir ->\n" +
+                            "                println \"'javaSourceDir - $dir'\"\n" +
+                            "            }\n" +
+                            "        }\n" +
+                            "     }\n"),
+                    StandardOpenOption.APPEND);
+
+        final BuildResult gradle = GradleRunner.create()
+                                               .withProjectDir(projectDir.toFile())
+                                               .withGradleVersion(version)
+                                               .withArguments(Arrays.asList("compileThrift",
+                                                                            "printJavaSourceDirs",
+                                                                            "--info"))
+                                               .withPluginClasspath()
+                                               .build();
+
+        assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(gradle.getOutput()).contains("-o " + projectDir.toFile().getCanonicalPath());
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService.java")
+        ).exists();
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
+                             .resolve("com/linecorp/thrift/plugin/test/TestStruct.java")
+        ).exists();
+
+        assertThat(gradle.getOutput()).contains(
+                "'javaSourceDir - " +
+                projectDir.resolve("build/generated-sources/thrift/gen-java").toFile()
+                          .getCanonicalPath() +
+                '\'');
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateJavaWithoutGenFolder(String version) throws Exception {
         Files.write(buildFile,
                     Collections.singletonList(
