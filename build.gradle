@@ -24,7 +24,7 @@ plugins {
 }
 
 group = 'com.linecorp.thrift-gradle-plugin'
-version = '0.5.0'
+version = System.getenv("PLUGIN_VERSION") ?: "0.5.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -84,7 +84,7 @@ gradlePlugin {
         thriftGradlePlugin {
             id = 'com.linecorp.thrift-gradle-plugin'
             implementationClass = 'com.linecorp.thrift.plugin.ThriftPlugin'
-            displayName = 'A gradle plugin for compiling Thrift IDL files using thrift compiler'
+            displayName = 'Gradle plugin for compiling Thrift IDL files'
             description = 'A gradle plugin for compiling Thrift IDL files using thrift compiler'
             tags.set(['thrift', 'code-generation'])
         }
