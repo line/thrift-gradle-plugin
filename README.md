@@ -84,7 +84,3 @@ compileThrift {
 ### Default Behaviors
 
 When JavaPlugin is applied, generator 'java' will be created and the generated java code will be added to Java source automatically.
-
-## License
-
-Gradle Thrift Plugin is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
