@@ -2,6 +2,7 @@
 
 Gradle Thrift Plugin uses thrift compiler to compile Thrift IDL files. 
 This project is forked from [jruyi/thrift-gradle-plugin](https://github.com/jruyi/thrift-gradle-plugin)
+It is open-sourced and licensed under [Apache License 2.0](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0) by [LINE Corporation](https://engineering.linecorp.com/en).
 
 ### Usage
 
