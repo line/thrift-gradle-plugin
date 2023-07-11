@@ -19,8 +19,12 @@
 
 plugins {
     id 'checkstyle'
+    id 'com.gradle.plugin-publish' version '1.2.0'
     id 'java-gradle-plugin'
 }
+
+group = 'com.linecorp.thrift-gradle-plugin'
+version = System.getenv("PLUGIN_VERSION") ?: "0.5.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -71,4 +75,18 @@ javaVersions.each { version ->
 
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
+}
+
+gradlePlugin {
+    website = 'https://github.com/line/thrift-gradle-plugin'
+    vcsUrl = 'https://github.com/line/thrift-gradle-plugin'
+    plugins {
+        thriftGradlePlugin {
+            id = 'com.linecorp.thrift-gradle-plugin'
+            implementationClass = 'com.linecorp.thrift.plugin.ThriftPlugin'
+            displayName = 'Gradle plugin for compiling Thrift IDL files'
+            description = 'A gradle plugin for compiling Thrift IDL files using thrift compiler'
+            tags.set(['thrift', 'code-generation'])
+        }
+    }
 }

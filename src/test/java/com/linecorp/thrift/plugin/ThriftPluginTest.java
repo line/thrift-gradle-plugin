@@ -48,7 +48,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "plugins { \n" +
                             "id \"java\" \n" +
-                            "id \"org.jruyi.thrift\" \n" +
+                            "id \"com.linecorp.thrift-gradle-plugin\" \n" +
                             "id \"com.google.osdetector\" version \"1.7.3\" \n" +
                             "}\n"),
                     StandardOpenOption.CREATE);

@@ -27,7 +27,7 @@
  * limitations under the License.
  */
 
-package org.jruyi.gradle.thrift.plugin;
+package com.linecorp.thrift.plugin;
 
 import java.io.File;
 import java.io.IOException;

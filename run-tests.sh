@@ -17,6 +17,6 @@ set -ev
 
 ./gradlew publishToMavenLocal
 
-./gradlew -b examples/test1/build.gradle --refresh-dependencies --rerun-tasks clean check
+./gradlew -p examples/test1 --refresh-dependencies --rerun-tasks clean check
 
-./gradlew -b examples/test2/build.gradle --refresh-dependencies --rerun-tasks clean check
+./gradlew -p examples/test2 --refresh-dependencies --rerun-tasks clean check

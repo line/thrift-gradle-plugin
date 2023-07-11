@@ -27,7 +27,7 @@
  * limitations under the License.
  */
 
-package org.jruyi.gradle.thrift.plugin;
+package com.linecorp.thrift.plugin;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;

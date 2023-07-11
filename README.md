@@ -1,32 +1,34 @@
 ## Gradle Thrift Plugin
 
-Gradle Thrift Plugin uses thrift compiler to compile Thrift IDL files.
+Gradle Thrift Plugin uses thrift compiler to compile Thrift IDL files. 
+This project is forked from [jruyi/thrift-gradle-plugin](https://github.com/jruyi/thrift-gradle-plugin).  
+It is open-sourced and licensed under [Apache License 2.0](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0) by [LINE Corporation](https://engineering.linecorp.com/en).
 
 ### Usage
 
 To use this plugin, add the following to your build script.
 
 ```groovy
+plugins {
+    id "com.linecorp.thrift-gradle-plugin" version "0.5.0"
+}
+```
+
+Or using legacy plugin application.
+
+```groovy
 buildscript {
     repositories {
         maven {
-            url "https://plugins.gradle.org/m2/"
+            url = uri("https://plugins.gradle.org/m2/")
         }
     }
     dependencies {
-        classpath "gradle.plugin.org.jruyi.gradle:thrift-gradle-plugin:0.4.2"
+        classpath("com.linecorp.thrift-gradle-plugin:com.linecorp.thrift-gradle-plugin.gradle.plugin:0.5.0")
     }
 }
 
-apply plugin: "org.jruyi.thrift"
-```
-
-Or for Gradle 2.1+:
-
-```groovy
-plugins {
-    id "org.jruyi.thrift" version "0.4.2"
-}
+apply plugin: "com.linecorp.thrift-gradle-plugin"
 ```
 
 ### Example
@@ -43,22 +45,22 @@ The Thrift plugin adds compileThrift task which compiles Thrift IDL files using 
 
 ##### Table-1 Task Properties of compileThrift
 
-Task Property     | Type                | Default Value
-------------------|---------------------|---------------------------------------------------
-thriftExecutable  | String              | thrift
-sourceDir         | File                | _projectDir_/src/main/thrift
-sourceItems       | Object...           | _projectDir_/src/main/thrift
-outputDir         | File                | _buildDir_/generated-sources/thrift
-includeDirs       | Set<File>           | []
-generators        | Map<String, String> | ['java':''] if JavaPlugin is applied, otherwise []
-nowarn            | boolean             | false
-strict            | boolean             | false
-verbose           | boolean             | false
-recurse           | boolean             | false
-debug             | boolean             | false
-allowNegKeys      | boolean             | false
-allow64bitsConsts | boolean             | false
-createGenFolder   | boolean             | true
+| Task Property     | Type                | Default Value                                      |
+|-------------------|---------------------|----------------------------------------------------|
+| thriftExecutable  | String              | thrift                                             |
+| sourceDir         | File                | _projectDir_/src/main/thrift                       |
+| sourceItems       | Object...           | _projectDir_/src/main/thrift                       |
+| outputDir         | File                | _buildDir_/generated-sources/thrift                |
+| includeDirs       | Set<File>           | []                                                 |
+| generators        | Map<String, String> | ['java':''] if JavaPlugin is applied, otherwise [] |
+| nowarn            | boolean             | false                                              |
+| strict            | boolean             | false                                              |
+| verbose           | boolean             | false                                              |
+| recurse           | boolean             | false                                              |
+| debug             | boolean             | false                                              |
+| allowNegKeys      | boolean             | false                                              |
+| allow64bitsConsts | boolean             | false                                              |
+| createGenFolder   | boolean             | true                                               |
 
 If createGenFolder is set to false, no gen-* folder will be created.
 
@@ -82,22 +84,3 @@ compileThrift {
 ### Default Behaviors
 
 When JavaPlugin is applied, generator 'java' will be created and the generated java code will be added to Java source automatically.
-
-## Using Thrift on Travis
-
-Ubuntu 14.04 (Trusty) provides [Thrift 0.9.0](http://packages.ubuntu.com/trusty/devel/thrift-compiler). If this version fits your requirements, you can use the following `.travis.yml` configuration file:
-
-```
-language: java
-dist: trusty
-sudo: required
-before_install:
-  - sudo apt-get install thrift-compiler
-script:
-  - ./gradlew check
-  - ./gradlew assemble
-```
-
-## License
-
-Gradle Thrift Plugin is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
