@@ -1,8 +1,7 @@
 name: Gradle Plugin Publish
 on:
-  push:
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+  release:
+    types: [ created ]
 
 jobs:
   publish:
