@@ -77,7 +77,6 @@ public abstract class CompileThrift extends DefaultTask {
     @Input
     public abstract Property<Boolean> getDebug();
 
-
     @Input
     public abstract Property<Boolean> getVerbose();
 

@@ -99,5 +99,4 @@ public abstract class CompileThriftExtension {
     public void generator(String key, String... values) {
         getGenerators().put(key, String.join(",", values));
     }
-
 }

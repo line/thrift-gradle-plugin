@@ -78,7 +78,7 @@ public class ThriftPluginTest {
     @ParameterizedTest
     @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateJavaWithSimpleConfig(String version) throws Exception {
-        copyDefaultThriftFiles();
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("src/main/thrift"));
         Files.write(buildFile,
                     Collections.singletonList(
                             "    compileThrift {\n" +
@@ -110,7 +110,7 @@ public class ThriftPluginTest {
     @ParameterizedTest
     @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateJavaChangeOutputDirectory(String version) throws Exception {
-        copyDefaultThriftFiles();
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("src/main/thrift"));
         Files.write(buildFile,
                     Collections.singletonList(
                             "    compileThrift {\n" +
@@ -144,10 +144,7 @@ public class ThriftPluginTest {
     @ParameterizedTest
     @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateJavaUsingDifferentSourceDirectory(String version) throws Exception {
-        Files.createDirectories(projectDir.resolve("thrift"));
-
-        Files.copy(Paths.get("src/test/resources/test.thrift"),
-                   projectDir.resolve("thrift/test.thrift"));
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("thrift"));
 
         Files.write(buildFile,
                     Collections.singletonList(
@@ -180,8 +177,47 @@ public class ThriftPluginTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "7.6", "8.0", "8.1" })
+    public void generateJavaMultipleSourceDirectory(String version) throws Exception {
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("thrift1"));
+        copyFile(Paths.get("src/test/resources/test2.thrift"), projectDir.resolve("thrift2"));
+
+        Files.write(buildFile,
+                    Collections.singletonList(
+                            "    compileThrift {\n" +
+                            "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        sourceItems layout.projectDirectory.dir(\"thrift1\"), " +
+                            "layout.projectDirectory.dir(\"thrift2\")\n" +
+                            "    }\n"),
+                    StandardOpenOption.APPEND);
+
+        final BuildResult gradle = GradleRunner.create()
+                                               .withProjectDir(projectDir.toFile())
+                                               .withGradleVersion(version)
+                                               .withArguments(Arrays.asList("compileJava", "--info"))
+                                               .withPluginClasspath()
+                                               .build();
+
+        assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(gradle.getOutput()).contains("-o " + projectDir.toFile().getCanonicalPath());
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService.java")
+        ).exists();
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService2.java")
+        ).exists();
+
+        assertThat(projectDir.resolve("build/classes/java/main")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService.class")
+        ).exists();
+        assertThat(projectDir.resolve("build/classes/java/main")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService2.class")
+        ).exists();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateJava(String version) throws Exception {
-        copyDefaultThriftFiles();
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("src/main/thrift"));
         Files.write(buildFile,
                     Collections.singletonList(
                             "    compileThrift {\n" +
@@ -228,7 +264,7 @@ public class ThriftPluginTest {
     @ParameterizedTest
     @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateJavaUsingLazyPropertyApi(String version) throws Exception {
-        copyDefaultThriftFiles();
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("src/main/thrift"));
         Files.write(buildFile,
                     Collections.singletonList(
                             "    compileThrift {\n" +
@@ -275,7 +311,7 @@ public class ThriftPluginTest {
     @ParameterizedTest
     @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateNonJava(String version) throws Exception {
-        copyDefaultThriftFiles();
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("src/main/thrift"));
         Files.write(buildFile,
                     Collections.singletonList(
                             "    compileThrift {\n" +
@@ -323,7 +359,7 @@ public class ThriftPluginTest {
     @ParameterizedTest
     @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void incremental(String version) throws Exception {
-        copyDefaultThriftFiles();
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("src/main/thrift"));
         Files.write(buildFile,
                     Collections.singletonList(
                             "    import com.linecorp.thrift.plugin.CompileThrift\n" +
@@ -342,9 +378,8 @@ public class ThriftPluginTest {
                     ),
                     StandardOpenOption.APPEND);
 
-        final Path test2Thrift = projectDir.resolve("src/main/thrift/test2.thrift");
-        Files.copy(Paths.get("src/test/resources/test2.thrift"),
-                   test2Thrift);
+        final Path copiedFile =
+                copyFile(Paths.get("src/test/resources/test2.thrift"), projectDir.resolve("src/main/thrift"));
 
         final GradleRunner runner = GradleRunner.create()
                                                 .withProjectDir(projectDir.toFile())
@@ -353,7 +388,7 @@ public class ThriftPluginTest {
                                                 .withPluginClasspath();
         runner.build();
 
-        Files.write(test2Thrift,
+        Files.write(copiedFile,
                     Collections.singletonList(
                             "    struct TestStruct3 {\n" +
                             "        1:required i32 num = 0,\n" +
@@ -368,9 +403,8 @@ public class ThriftPluginTest {
         assertThat(gradle.getOutput()).contains("test2.thrift");
     }
 
-    private void copyDefaultThriftFiles() throws IOException {
-        Files.createDirectories(projectDir.resolve("src/main/thrift"));
-        Files.copy(Paths.get("src/test/resources/test.thrift"),
-                   projectDir.resolve("src/main/thrift/test.thrift"));
+    private Path copyFile(Path source, Path targetDirectory) throws IOException {
+        Files.createDirectories(targetDirectory);
+        return Files.copy(source, targetDirectory.resolve(source.getFileName()));
     }
 }
