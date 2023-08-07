@@ -227,6 +227,53 @@ public class ThriftPluginTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "7.6", "8.0", "8.1" })
+    public void generateJavaUsingLazyPropertyApi(String version) throws Exception {
+        copyDefaultThriftFiles();
+        Files.write(buildFile,
+                    Collections.singletonList(
+                            "    compileThrift {\n" +
+                            "        thriftExecutable = \"" + thriftPathExpression + "\"\n" +
+                            "        sourceItems.from(layout.projectDirectory.dir(\"src/main/thrift\"))\n" +
+                            "        outputDir = layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
+                            "        nowarn = true\n" +
+                            "        strict = true\n" +
+                            "        verbose = true\n" +
+                            "        recurse = true\n" +
+                            "        debug = true\n" +
+                            "        generators.put('java', '')\n" +
+                            "    }\n"),
+                    StandardOpenOption.APPEND);
+
+        final BuildResult gradle = GradleRunner.create()
+                                               .withProjectDir(projectDir.toFile())
+                                               .withGradleVersion(version)
+                                               .withArguments(Arrays.asList("compileJava", "--info"))
+                                               .withPluginClasspath()
+                                               .build();
+
+        assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(gradle.getOutput()).contains(
+                "-o " +
+                projectDir.toFile().getCanonicalPath() +
+                "/build/generated-sources/thrift --gen java" +
+                " -r -nowarn -strict -v -debug " +
+                projectDir.toFile().getCanonicalPath() +
+                "/src/main/thrift/test.thrift"
+        );
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService.java")
+        ).exists();
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
+                             .resolve("com/linecorp/thrift/plugin/test/TestStruct.java")
+        ).exists();
+
+        assertThat(projectDir.resolve("build/classes/java/main")
+                             .resolve("com/linecorp/thrift/plugin/test/TestStruct.class")
+        ).exists();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateNonJava(String version) throws Exception {
         copyDefaultThriftFiles();
         Files.write(buildFile,
@@ -326,5 +373,4 @@ public class ThriftPluginTest {
         Files.copy(Paths.get("src/test/resources/test.thrift"),
                    projectDir.resolve("src/main/thrift/test.thrift"));
     }
-
 }
