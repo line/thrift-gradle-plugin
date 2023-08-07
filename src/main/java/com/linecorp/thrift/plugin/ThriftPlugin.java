@@ -18,8 +18,16 @@
  */
 package com.linecorp.thrift.plugin;
 
+import java.util.Collections;
+
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.Directory;
+import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskProvider;
 
 public class ThriftPlugin implements Plugin<Project> {
 
@@ -29,8 +37,68 @@ public class ThriftPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        final CompileThrift compileThrift = project.getTasks().create(COMPILE_THRIFT_TASK, CompileThrift.class);
-        compileThrift.sourceDir(project.getProjectDir() + "/src/main/thrift");
-        compileThrift.outputDir(project.getBuildDir() + "/generated-sources/thrift");
+        final CompileThriftExtension extension = project.getExtensions().create("compileThrift",
+                                                                                CompileThriftExtension.class);
+        extension.getThriftExecutable().convention("thrift");
+        extension.getNowarn().convention(false);
+        extension.getVerbose().convention(false);
+        extension.getStrict().convention(false);
+        extension.getDebug().convention(false);
+        extension.getRecurse().convention(false);
+        extension.getCreateGenFolder().convention(true);
+        extension.getOutputDir().convention(
+                project.getLayout().getBuildDirectory().dir("generated-sources/thrift"));
+
+        final TaskProvider<CompileThrift> compileThriftTaskProvider =
+                project.getTasks().register(COMPILE_THRIFT_TASK, CompileThrift.class);
+
+        compileThriftTaskProvider.configure(task -> {
+            task.getThriftExecutable().set(extension.getThriftExecutable());
+            task.getNowarn().set(extension.getNowarn());
+            task.getVerbose().set(extension.getVerbose());
+            task.getStrict().set(extension.getStrict());
+            task.getDebug().set(extension.getDebug());
+            task.getRecurse().set(extension.getRecurse());
+            task.getGenerators().set(extension.getGenerators());
+            task.getCreateGenFolder().set(extension.getCreateGenFolder());
+            task.getIncludeDirs().setFrom(extension.getIncludeDirs());
+
+            // Give default value for ConfigurableFileCollection,
+            // Only found getElements can return Provider.
+            final Directory dir = project.getLayout().getProjectDirectory().dir("src/main/thrift");
+            task.getSourceItems().setFrom(extension.getSourceItems().getElements().map(locations -> {
+                if (locations.isEmpty()) {
+                    return Collections.singleton(dir);
+                }
+                return locations;
+            }));
+
+            task.getOutputDir().set(extension.getOutputDir());
+        });
+
+        project.getPlugins().withType(JavaPlugin.class).configureEach(javaPlugin -> {
+            extension.getGenerators().put("java", "");
+
+            project.getTasks().named(JavaPlugin.COMPILE_JAVA_TASK_NAME).configure(task -> {
+                task.dependsOn(compileThriftTaskProvider);
+            });
+
+            final SourceSetContainer sourceSetContainer =
+                    project.getExtensions().getByType(SourceSetContainer.class);
+            final SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            final Provider<Directory> outputDirectory =
+                    compileThriftTaskProvider
+                            .flatMap(CompileThrift::getOutputDir)
+                            .zip(compileThriftTaskProvider.flatMap(CompileThrift::getCreateGenFolder),
+                                 (directory, genFolder) -> {
+                                     if (genFolder) {
+                                         return directory.dir("gen-java");
+                                     } else {
+                                         return directory;
+                                     }
+                                 });
+
+            sourceSet.getJava().srcDir(outputDirectory);
+        });
     }
 }

@@ -25,23 +25,19 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.ExecResult;
 import org.gradle.work.ChangeType;
@@ -58,181 +54,35 @@ public abstract class CompileThrift extends DefaultTask {
     public abstract ConfigurableFileCollection getSourceItems();
 
     @OutputDirectory
-    File outputDir;
+    public abstract DirectoryProperty getOutputDir();
+
+    @InputFiles
+    public abstract ConfigurableFileCollection getIncludeDirs();
 
     @Input
-    Set<File> includeDirs = new HashSet<>();
+    public abstract Property<String> getThriftExecutable();
 
     @Input
-    String thriftExecutable = "thrift";
+    public abstract Property<Boolean> getCreateGenFolder();
 
     @Input
-    final Map<String, String> generators = new LinkedHashMap<>();
+    public abstract Property<Boolean> getNowarn();
 
     @Input
-    boolean createGenFolder = true;
+    public abstract Property<Boolean> getStrict();
 
     @Input
-    boolean recurse;
+    public abstract Property<Boolean> getRecurse();
 
     @Input
-    boolean allowNegKeys;
+    public abstract Property<Boolean> getDebug();
+
 
     @Input
-    boolean allow64bitsConsts;
+    public abstract Property<Boolean> getVerbose();
 
-    @Internal
-    boolean nowarn;
-
-    @Internal
-    boolean strict;
-
-    @Internal
-    boolean verbose;
-
-    @Internal
-    boolean debug;
-
-    public File getOutputDir() {
-        return outputDir;
-    }
-
-    public Set<File> getIncludeDirs() {
-        return includeDirs;
-    }
-
-    public String getThriftExecutable() {
-        return thriftExecutable;
-    }
-
-    public Map<String, String> getGenerators() {
-        return generators;
-    }
-
-    public boolean isCreateGenFolder() {
-        return createGenFolder;
-    }
-
-    public boolean isRecurse() {
-        return recurse;
-    }
-
-    public boolean isAllowNegKeys() {
-        return allowNegKeys;
-    }
-
-    public boolean isAllow64bitsConsts() {
-        return allow64bitsConsts;
-    }
-
-    public boolean isNowarn() {
-        return nowarn;
-    }
-
-    public boolean isStrict() {
-        return strict;
-    }
-
-    public boolean isVerbose() {
-        return verbose;
-    }
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setThriftExecutable(String thriftExecutable) {
-        this.thriftExecutable = thriftExecutable;
-    }
-
-    public void setCreateGenFolder(boolean createGenFolder) {
-        this.createGenFolder = createGenFolder;
-    }
-
-    public void setRecurse(boolean recurse) {
-        this.recurse = recurse;
-    }
-
-    public void setAllowNegKeys(boolean allowNegKeys) {
-        this.allowNegKeys = allowNegKeys;
-    }
-
-    public void setAllow64bitsConsts(boolean allow64bitsConsts) {
-        this.allow64bitsConsts = allow64bitsConsts;
-    }
-
-    public void setNowarn(boolean nowarn) {
-        this.nowarn = nowarn;
-    }
-
-    public void setStrict(boolean strict) {
-        this.strict = strict;
-    }
-
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
-
-    void thriftExecutable(Object thriftExecutable) {
-        this.thriftExecutable = String.valueOf(thriftExecutable);
-    }
-
-    void sourceDir(Object sourceDir) {
-        sourceItems(sourceDir);
-    }
-
-    void sourceItems(Object... sourceItems) {
-        for (Object sourceItem : sourceItems) {
-            getSourceItems().from(convertToFile(sourceItem));
-        }
-    }
-
-    void outputDir(Object outputDir) {
-        if (!(outputDir instanceof File)) {
-            outputDir = getProject().file(outputDir);
-        }
-        if (this.outputDir == outputDir) {
-            return;
-        }
-        final File oldOutputDir = currentOutputDir();
-        this.outputDir = (File) outputDir;
-        addSourceDir(oldOutputDir);
-    }
-
-    void includeDir(Object includeDir) {
-        if (!(includeDir instanceof File)) {
-            includeDir = getProject().file(includeDir);
-        }
-
-        includeDirs.add((File) includeDir);
-    }
-
-    void generator(String gen, String... args) {
-        final String options;
-        if (args == null || args.length < 1) {
-            options = "";
-        } else {
-            final int n = args.length;
-            for (int i = 0; i < n; ++i) {
-                args[i] = args[i].trim();
-            }
-            options = String.join(",", args);
-        }
-        generators.put(String.valueOf(gen).trim(), options);
-    }
-
-    void createGenFolder(boolean createGenFolder) {
-        if (this.createGenFolder == createGenFolder) {
-            return;
-        }
-        final File oldOutputDir = currentOutputDir();
-        this.createGenFolder = createGenFolder;
-        addSourceDir(oldOutputDir);
-    }
+    @Input
+    public abstract MapProperty<String, String> getGenerators();
 
     @TaskAction
     void compileThrift(InputChanges inputs) {
@@ -253,9 +103,10 @@ public abstract class CompileThrift extends DefaultTask {
             }
         }
 
-        if (!outputDir.exists() && !outputDir.mkdirs()) {
+        final File outputDirFile = getOutputDir().getAsFile().get();
+        if (!outputDirFile.exists() && !outputDirFile.mkdirs()) {
             throw new GradleException(
-                    "Could not create thrift output directory: " + outputDir.getAbsolutePath());
+                    "Could not create thrift output directory: " + outputDirFile.getAbsolutePath());
         }
 
         changedFiles.forEach(changedFile -> {
@@ -264,15 +115,16 @@ public abstract class CompileThrift extends DefaultTask {
     }
 
     void compileAll() {
+        final File outputDirFile = getOutputDir().getAsFile().get();
         // Using same method of File#deleteDir in groovy.
-        if (!ResourceGroovyMethods.deleteDir(outputDir)) {
+        if (!ResourceGroovyMethods.deleteDir(outputDirFile)) {
             throw new GradleException(
-                    "Could not delete thrift output directory: " + outputDir.getAbsolutePath());
+                    "Could not delete thrift output directory: " + outputDirFile.getAbsolutePath());
         }
 
-        if (!outputDir.mkdirs()) {
+        if (!outputDirFile.mkdirs()) {
             throw new GradleException(
-                    "Could not create thrift output directory: " + outputDir.getAbsolutePath());
+                    "Could not create thrift output directory: " + outputDirFile.getAbsolutePath());
         }
 
         // expand all items.
@@ -301,9 +153,11 @@ public abstract class CompileThrift extends DefaultTask {
     }
 
     void compile(String source) {
+        final File outputDirFile = getOutputDir().getAsFile().get();
         final List<String> cmdLine = new ArrayList<>(
-                Arrays.asList(thriftExecutable, createGenFolder ? "-o" : "-out", outputDir.getAbsolutePath()));
-        generators.forEach((key, value) -> {
+                Arrays.asList(getThriftExecutable().get(), getCreateGenFolder().get() ? "-o" : "-out",
+                              outputDirFile.getAbsolutePath()));
+        getGenerators().get().forEach((key, value) -> {
             cmdLine.add("--gen");
 
             String cmd = key.trim();
@@ -314,24 +168,24 @@ public abstract class CompileThrift extends DefaultTask {
             cmdLine.add(cmd);
         });
 
-        includeDirs.forEach(includeDir -> {
+        getIncludeDirs().forEach(includeDir -> {
             cmdLine.add("-I");
             cmdLine.add(includeDir.getAbsolutePath());
         });
 
-        if (recurse) {
+        if (getRecurse().get()) {
             cmdLine.add("-r");
         }
-        if (nowarn) {
+        if (getNowarn().get()) {
             cmdLine.add("-nowarn");
         }
-        if (strict) {
+        if (getStrict().get()) {
             cmdLine.add("-strict");
         }
-        if (verbose) {
+        if (getVerbose().get()) {
             cmdLine.add("-v");
         }
-        if (debug) {
+        if (getDebug().get()) {
             cmdLine.add("-debug");
         }
         cmdLine.add(source);
@@ -344,72 +198,5 @@ public abstract class CompileThrift extends DefaultTask {
         if (exitCode != 0) {
             throw new GradleException("Failed to compile " + source + ", exit=" + exitCode);
         }
-    }
-
-    void makeAsDependency(File oldOutputDir) {
-        final Task compileJava = getProject().getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
-        if (compileJava == null) {
-            return;
-        }
-
-        generators.put("java", "");
-        final File genJava;
-        try {
-            genJava = currentOutputDir().getCanonicalFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        if (genJava.equals(oldOutputDir)) {
-            return;
-        }
-
-        final SourceSetContainer sourceSetContainer = getProject().getExtensions().getByType(
-                SourceSetContainer.class);
-        final SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-
-        if (oldOutputDir != null) {
-            final Set<File> filteredJavaSrcDirs = sourceSet.getJava().getSourceDirectories().filter(
-                    file -> !file.equals(oldOutputDir)).getFiles();
-            sourceSet.getJava().setSrcDirs(filteredJavaSrcDirs);
-        }
-        sourceSet.getJava().srcDir(genJava.getAbsolutePath());
-
-        compileJava.dependsOn(this);
-    }
-
-    private void addSourceDir(File oldOutputDir) {
-        if (getProject().getPlugins().hasPlugin("java")) {
-            makeAsDependency(oldOutputDir);
-        } else {
-            getProject().getPlugins().whenPluginAdded(plugin -> {
-                if (plugin instanceof JavaPlugin) {
-                    makeAsDependency(oldOutputDir);
-                }
-            });
-        }
-    }
-
-    File convertToFile(Object item) {
-        if (item instanceof File) {
-            return (File) item;
-        }
-
-        final File result = new File(item.toString());
-        if (result.exists()) {
-            return result;
-        }
-
-        return getProject().file(item);
-    }
-
-    private File currentOutputDir() {
-        File currentOutputDir = outputDir;
-        if (currentOutputDir == null) {
-            return null;
-        }
-        if (createGenFolder) {
-            currentOutputDir = new File(currentOutputDir, "gen-java");
-        }
-        return currentOutputDir;
     }
 }
