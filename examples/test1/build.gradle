@@ -41,8 +41,6 @@ compileThrift {
     verbose true
     recurse true
     debug true
-    allowNegKeys true
-    allow64bitsConsts true
     createGenFolder false
 
     generator 'java', 'private-members'

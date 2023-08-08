@@ -88,6 +88,10 @@ public abstract class CompileThriftExtension {
         getOutputDir().set(outputDir);
     }
 
+    public void outputDir(String outputDir) {
+        getOutputDir().set(new File(outputDir));
+    }
+
     public void outputDir(Directory outputDir) {
         getOutputDir().set(outputDir);
     }
