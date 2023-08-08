@@ -37,18 +37,50 @@ public class ThriftPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        final CompileThriftExtension extension = project.getExtensions().create("compileThrift",
-                                                                                CompileThriftExtension.class);
-        extension.getThriftExecutable().convention("thrift");
-        extension.getNowarn().convention(false);
-        extension.getVerbose().convention(false);
-        extension.getStrict().convention(false);
-        extension.getDebug().convention(false);
-        extension.getRecurse().convention(false);
-        extension.getCreateGenFolder().convention(true);
-        extension.getOutputDir().convention(
-                project.getLayout().getBuildDirectory().dir("generated-sources/thrift"));
+        setupDefaultValuesForTask(project);
+        final CompileThriftExtension extension = createExtension(project);
+        final TaskProvider<CompileThrift> compileThriftTaskProvider = registerDefaultTask(project, extension);
 
+        project.getPlugins().withType(JavaPlugin.class).configureEach(javaPlugin -> {
+            extension.getGenerators().put("java", "");
+
+            project.getTasks().named(JavaPlugin.COMPILE_JAVA_TASK_NAME).configure(task -> {
+                task.dependsOn(compileThriftTaskProvider);
+            });
+
+            final SourceSetContainer sourceSetContainer =
+                    project.getExtensions().getByType(SourceSetContainer.class);
+            final SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            final Provider<Directory> outputDirectory =
+                    compileThriftTaskProvider
+                            .flatMap(CompileThrift::getOutputDir)
+                            .zip(compileThriftTaskProvider.flatMap(CompileThrift::getCreateGenFolder),
+                                 (directory, genFolder) -> {
+                                     if (genFolder) {
+                                         return directory.dir("gen-java");
+                                     } else {
+                                         return directory;
+                                     }
+                                 });
+
+            sourceSet.getJava().srcDir(outputDirectory);
+        });
+    }
+
+    private void setupDefaultValuesForTask(Project project) {
+        project.getTasks().withType(CompileThrift.class).configureEach(task -> {
+            task.getThriftExecutable().convention("thrift");
+            task.getNowarn().convention(false);
+            task.getVerbose().convention(false);
+            task.getStrict().convention(false);
+            task.getDebug().convention(false);
+            task.getRecurse().convention(false);
+            task.getCreateGenFolder().convention(true);
+        });
+    }
+
+    private TaskProvider<CompileThrift> registerDefaultTask(Project project,
+                                                            CompileThriftExtension extension) {
         final TaskProvider<CompileThrift> compileThriftTaskProvider =
                 project.getTasks().register(COMPILE_THRIFT_TASK, CompileThrift.class);
 
@@ -75,30 +107,21 @@ public class ThriftPlugin implements Plugin<Project> {
 
             task.getOutputDir().set(extension.getOutputDir());
         });
+        return compileThriftTaskProvider;
+    }
 
-        project.getPlugins().withType(JavaPlugin.class).configureEach(javaPlugin -> {
-            extension.getGenerators().put("java", "");
-
-            project.getTasks().named(JavaPlugin.COMPILE_JAVA_TASK_NAME).configure(task -> {
-                task.dependsOn(compileThriftTaskProvider);
-            });
-
-            final SourceSetContainer sourceSetContainer =
-                    project.getExtensions().getByType(SourceSetContainer.class);
-            final SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-            final Provider<Directory> outputDirectory =
-                    compileThriftTaskProvider
-                            .flatMap(CompileThrift::getOutputDir)
-                            .zip(compileThriftTaskProvider.flatMap(CompileThrift::getCreateGenFolder),
-                                 (directory, genFolder) -> {
-                                     if (genFolder) {
-                                         return directory.dir("gen-java");
-                                     } else {
-                                         return directory;
-                                     }
-                                 });
-
-            sourceSet.getJava().srcDir(outputDirectory);
-        });
+    private CompileThriftExtension createExtension(Project project) {
+        final CompileThriftExtension extension = project.getExtensions().create("compileThrift",
+                                                                                CompileThriftExtension.class);
+        extension.getThriftExecutable().convention("thrift");
+        extension.getNowarn().convention(false);
+        extension.getVerbose().convention(false);
+        extension.getStrict().convention(false);
+        extension.getDebug().convention(false);
+        extension.getRecurse().convention(false);
+        extension.getCreateGenFolder().convention(true);
+        extension.getOutputDir().convention(
+                project.getLayout().getBuildDirectory().dir("generated-sources/thrift"));
+        return extension;
     }
 }
