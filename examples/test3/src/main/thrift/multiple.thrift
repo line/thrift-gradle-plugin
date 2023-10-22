@@ -1,7 +1,4 @@
 /*
- * Based on jruyi/thrift-gradle-plugin/../examples/test2/build.gradle
- * Modified 2023 LINE Corporation
- *
  * Copyright 2023 LINE Corporation
  *
  * LINE Corporation licenses this file to you under the Apache License,
@@ -17,21 +14,12 @@
  * under the License.
  */
 
-plugins {
-    id 'java'
-    id 'com.google.osdetector' version '1.7.3'
-    id 'com.linecorp.thrift-gradle-plugin' version '+'
+namespace java tutorial
+namespace py tutorial
+
+typedef i32 int // We can use typedef to get pretty names for the types we are using
+service MultiplicationService
+{
+        int multiply(1:int n1, 2:int n2),
 }
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation 'org.apache.thrift:libthrift:0.14.1'
-}
-
-compileThrift {
-    thriftExecutable "../../lib/thrift/0.17.0/thrift.${osdetector.classifier}"
-    generator 'py'
-}

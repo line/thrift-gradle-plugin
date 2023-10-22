@@ -18,7 +18,6 @@
  */
 
 plugins {
-    id 'java'
     id 'com.google.osdetector' version '1.7.3'
     id 'com.linecorp.thrift-gradle-plugin' version '+'
 }
@@ -27,11 +26,9 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation 'org.apache.thrift:libthrift:0.14.1'
-}
-
 compileThrift {
     thriftExecutable "../../lib/thrift/0.17.0/thrift.${osdetector.classifier}"
     generator 'py'
+    generator 'perl'
+    generator 'js'
 }
