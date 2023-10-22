@@ -42,17 +42,27 @@ public class ThriftPlugin implements Plugin<Project> {
         final TaskProvider<CompileThrift> compileThriftTaskProvider = registerDefaultTask(project, extension);
 
         project.getPlugins().withType(JavaPlugin.class).configureEach(javaPlugin -> {
+            // We can't remove java when there is a JavaPlugin now
+            // In the future if we start to support kotlin, we may need to let user choose which one they want
+            // to generate.
             extension.getGenerators().put("java", "");
 
             project.getTasks().named(JavaPlugin.COMPILE_JAVA_TASK_NAME).configure(task -> {
-                task.dependsOn(compileThriftTaskProvider);
+                task.dependsOn(extension.getGenerators().flatMap(generators -> {
+                    if (generators.containsKey("java")) {
+                        return compileThriftTaskProvider;
+                    } else {
+                        return project.provider(() -> null);
+                    }
+                }));
             });
 
             final SourceSetContainer sourceSetContainer =
                     project.getExtensions().getByType(SourceSetContainer.class);
             final SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-            final Provider<Directory> outputDirectory =
-                    compileThriftTaskProvider
+            final Provider<Directory> outputDirectory = extension.getGenerators().flatMap(generators -> {
+                if (generators.containsKey("java")) {
+                    return compileThriftTaskProvider
                             .flatMap(CompileThrift::getOutputDir)
                             .zip(compileThriftTaskProvider.flatMap(CompileThrift::getCreateGenFolder),
                                  (directory, genFolder) -> {
@@ -62,7 +72,10 @@ public class ThriftPlugin implements Plugin<Project> {
                                          return directory;
                                      }
                                  });
-
+                } else {
+                    return project.provider(() -> null);
+                }
+            });
             sourceSet.getJava().srcDir(outputDirectory);
         });
     }
@@ -94,18 +107,19 @@ public class ThriftPlugin implements Plugin<Project> {
             task.getGenerators().set(extension.getGenerators());
             task.getCreateGenFolder().set(extension.getCreateGenFolder());
             task.getIncludeDirs().setFrom(extension.getIncludeDirs());
+            task.getOutputDir().set(extension.getOutputDir());
 
             // Give default value for ConfigurableFileCollection,
-            // Only found getElements can return Provider.
+            // If we set this at createExtension, it's not easy to remove set one from Collection when we want
+            // to change in build.gradle. Because current convention will only allow us to append more items.
             final Directory dir = project.getLayout().getProjectDirectory().dir("src/main/thrift");
+            // Looks like getElements can return Provider.
             task.getSourceItems().setFrom(extension.getSourceItems().getElements().map(locations -> {
                 if (locations.isEmpty()) {
                     return Collections.singleton(dir);
                 }
                 return locations;
             }));
-
-            task.getOutputDir().set(extension.getOutputDir());
         });
         return compileThriftTaskProvider;
     }

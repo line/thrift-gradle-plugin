@@ -58,8 +58,6 @@ The Thrift plugin adds compileThrift task which compiles Thrift IDL files using 
 | verbose           | boolean             | false                                              |
 | recurse           | boolean             | false                                              |
 | debug             | boolean             | false                                              |
-| allowNegKeys      | boolean             | false                                              |
-| allow64bitsConsts | boolean             | false                                              |
 | createGenFolder   | boolean             | true                                               |
 
 If createGenFolder is set to false, no gen-* folder will be created.
