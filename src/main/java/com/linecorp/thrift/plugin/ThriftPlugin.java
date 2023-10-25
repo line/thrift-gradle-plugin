@@ -41,7 +41,7 @@ public class ThriftPlugin implements Plugin<Project> {
         final CompileThriftExtension extension = createExtension(project);
         final TaskProvider<CompileThrift> compileThriftTaskProvider = registerDefaultTask(project, extension);
 
-        project.getPlugins().withType(JavaPlugin.class).configureEach(javaPlugin -> {
+        project.getPluginManager().withPlugin("java", appliedPlugin -> {
             // We can't remove java when there is a JavaPlugin now
             // In the future if we start to support kotlin, we may need to let user choose which one they want
             // to generate.
