@@ -25,7 +25,6 @@ import java.util.Map;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Provider;
@@ -61,7 +60,7 @@ public class ThriftPlugin implements Plugin<Project> {
                     if (generators.containsKey("java")) {
                         return compileThriftTaskProvider;
                     } else {
-                        return project.provider(() -> new ArrayList<Task>());
+                        return project.provider(ArrayList::new);
                     }
                 }));
             });
@@ -82,7 +81,7 @@ public class ThriftPlugin implements Plugin<Project> {
                                      }
                                  });
                 } else {
-                    return project.provider(() -> new ArrayList<String>());
+                    return project.provider(ArrayList::new);
                 }
             });
             mainSourceSet.getJava().srcDir(outputDirectory);
