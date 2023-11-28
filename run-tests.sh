@@ -21,4 +21,6 @@ set -ev
 
 ./gradlew -p examples/test2 --refresh-dependencies --rerun-tasks clean check
 
-./gradlew -p examples/test3 --refresh-dependencies --rerun-tasks
+./gradlew -p examples/test3 --refresh-dependencies --rerun-tasks clean compileThrift
+
+./gradlew -p examples/test4 --refresh-dependencies --rerun-tasks clean check

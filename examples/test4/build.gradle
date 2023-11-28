@@ -33,6 +33,11 @@ dependencies {
     implementation 'org.apache.thrift:libthrift:0.14.1'
 }
 
+compileThrift {
+    // Disable default compileThriftTask
+    autoDetectPlugin false
+}
+
 tasks.register("customCompileThrift", CompileThrift.class) {
     thriftExecutable = "../../lib/thrift/0.17.0/thrift.${osdetector.classifier}"
     sourceItems.from(layout.projectDirectory.dir("src/main/thrift"))
@@ -40,3 +45,15 @@ tasks.register("customCompileThrift", CompileThrift.class) {
     generators.put('java', 'private-members')
 }
 
+// We need to set task dependency and sourceSets manually for custom task.
+tasks.named("compileJava") {
+    dependsOn("customCompileThrift")
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir layout.buildDirectory.dir("gen-gen-src")
+        }
+    }
+}
