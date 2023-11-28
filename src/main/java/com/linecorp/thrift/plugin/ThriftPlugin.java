@@ -18,10 +18,14 @@
  */
 package com.linecorp.thrift.plugin;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Provider;
@@ -42,25 +46,30 @@ public class ThriftPlugin implements Plugin<Project> {
         final TaskProvider<CompileThrift> compileThriftTaskProvider = registerDefaultTask(project, extension);
 
         project.getPluginManager().withPlugin("java", appliedPlugin -> {
-            // We can't remove java when there is a JavaPlugin now
             // In the future if we start to support kotlin, we may need to let user choose which one they want
             // to generate.
-            extension.getGenerators().put("java", "");
+            extension.getGenerators().putAll(extension.getAutoDetectPlugin().map(autoDetect -> {
+                final Map<String, String> map = new HashMap<>();
+                if (autoDetect) {
+                    map.put("java", "");
+                }
+                return map;
+            }));
 
             project.getTasks().named(JavaPlugin.COMPILE_JAVA_TASK_NAME).configure(task -> {
                 task.dependsOn(extension.getGenerators().flatMap(generators -> {
                     if (generators.containsKey("java")) {
                         return compileThriftTaskProvider;
                     } else {
-                        return project.provider(() -> null);
+                        return project.provider(() -> new ArrayList<Task>());
                     }
                 }));
             });
 
             final SourceSetContainer sourceSetContainer =
                     project.getExtensions().getByType(SourceSetContainer.class);
-            final SourceSet sourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-            final Provider<Directory> outputDirectory = extension.getGenerators().flatMap(generators -> {
+            final SourceSet mainSourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            final Provider<Object> outputDirectory = extension.getGenerators().flatMap(generators -> {
                 if (generators.containsKey("java")) {
                     return compileThriftTaskProvider
                             .flatMap(CompileThrift::getOutputDir)
@@ -73,10 +82,10 @@ public class ThriftPlugin implements Plugin<Project> {
                                      }
                                  });
                 } else {
-                    return project.provider(() -> null);
+                    return project.provider(() -> new ArrayList<String>());
                 }
             });
-            sourceSet.getJava().srcDir(outputDirectory);
+            mainSourceSet.getJava().srcDir(outputDirectory);
         });
     }
 
@@ -133,6 +142,7 @@ public class ThriftPlugin implements Plugin<Project> {
         extension.getStrict().convention(false);
         extension.getDebug().convention(false);
         extension.getRecurse().convention(false);
+        extension.getAutoDetectPlugin().convention(true);
         extension.getCreateGenFolder().convention(true);
         extension.getOutputDir().convention(
                 project.getLayout().getBuildDirectory().dir("generated-sources/thrift"));

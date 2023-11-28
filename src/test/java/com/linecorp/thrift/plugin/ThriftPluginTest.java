@@ -59,20 +59,70 @@ public class ThriftPluginTest {
                             "        implementation 'javax.annotation:javax.annotation-api:1.3.2'\n" +
                             "        implementation 'org.slf4j:slf4j-api:2.0.7'\n" +
                             "        implementation 'org.apache.thrift:libthrift:0.17.0'\n" +
-                            "    }\n" +
-                            "    task printJavaSourceDirs(type: DefaultTask) {\n" +
-                            "        def sourceSet = project.sourceSets.main \n" +
-                            "        def javaSourceDirs = sourceSet.java.srcDirs\n" +
-                            "        doLast {\n" +
-                            "           javaSourceDirs.each { dir ->\n" +
-                            "                println \"'javaSourceDir - $dir'\"\n" +
-                            "            }\n" +
-                            "        }\n" +
-                            "    }\n"),
+                            "    }"),
                     StandardOpenOption.CREATE);
 
         thriftPathExpression = Paths.get("lib/thrift/0.17.0").toAbsolutePath() +
                                "/thrift.${osdetector.classifier}";
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
+    public void generateNonJavaWithoutJavaPlugin(String version) throws Exception {
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("src/main/thrift"));
+        Files.write(buildFile,
+                    Collections.singletonList(
+                            "    plugins { \n" +
+                            "        id \"com.linecorp.thrift-gradle-plugin\" \n" +
+                            "        id \"com.google.osdetector\" version \"1.7.3\" \n" +
+                            "    }\n" +
+                            "     repositories {\n" +
+                            "         mavenCentral()\n" +
+                            "    }"),
+                    StandardOpenOption.TRUNCATE_EXISTING);
+
+        Files.write(buildFile,
+                    Collections.singletonList(
+                            "    compileThrift {\n" +
+                            "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        sourceDir \"src/main/thrift\"\n" +
+                            "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
+                            "        nowarn true\n" +
+                            "        strict true\n" +
+                            "        verbose true\n" +
+                            "        recurse true\n" +
+                            "        debug true\n" +
+                            "        generator 'perl'\n" +
+                            "        generator 'html'\n" +
+                            "        generator 'json'\n" +
+                            "    }\n"),
+                    StandardOpenOption.APPEND);
+
+        final BuildResult gradle = GradleRunner.create()
+                                               .withProjectDir(projectDir.toFile())
+                                               .withGradleVersion(version)
+                                               .withArguments(Arrays.asList("compileThrift", "--info"))
+                                               .withPluginClasspath()
+                                               .build();
+        assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+
+        assertThat(gradle.getOutput()).contains(
+                "-o " +
+                projectDir.toFile().getCanonicalPath() +
+                "/build/generated-sources/thrift --gen perl --gen html --gen json" +
+                " -r -nowarn -strict -v -debug " +
+                projectDir.toFile().getCanonicalPath() +
+                "/src/main/thrift/test.thrift"
+        );
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-html"))
+                .isDirectoryContaining(path -> "index.html".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "test.html".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "style.css".equals(path.getFileName().toString()));
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-perl"))
+                .isDirectoryContaining(path -> "Constants.pm".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "Types.pm".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "TestService.pm".equals(path.getFileName().toString()));
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-json/test.json")).exists();
     }
 
     @ParameterizedTest
@@ -332,7 +382,7 @@ public class ThriftPluginTest {
         final BuildResult gradle = GradleRunner.create()
                                                .withProjectDir(projectDir.toFile())
                                                .withGradleVersion(version)
-                                               .withArguments(Arrays.asList("compileThrift", "--info"))
+                                               .withArguments(Arrays.asList("compileJava", "--info"))
                                                .withPluginClasspath()
                                                .build();
 
@@ -341,6 +391,55 @@ public class ThriftPluginTest {
                 "-o " +
                 projectDir.toFile().getCanonicalPath() +
                 "/build/generated-sources/thrift --gen java --gen perl --gen html --gen json" +
+                " -r -nowarn -strict -v -debug " +
+                projectDir.toFile().getCanonicalPath() +
+                "/src/main/thrift/test.thrift"
+        );
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-html"))
+                .isDirectoryContaining(path -> "index.html".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "test.html".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "style.css".equals(path.getFileName().toString()));
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-perl"))
+                .isDirectoryContaining(path -> "Constants.pm".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "Types.pm".equals(path.getFileName().toString()))
+                .isDirectoryContaining(path -> "TestService.pm".equals(path.getFileName().toString()));
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-json/test.json")).exists();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
+    public void generateNonJavaWithoutJavaFile(String version) throws Exception {
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("src/main/thrift"));
+        Files.write(buildFile,
+                    Collections.singletonList(
+                            "    compileThrift {\n" +
+                            "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        sourceDir \"src/main/thrift\"\n" +
+                            "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
+                            "        nowarn true\n" +
+                            "        strict true\n" +
+                            "        verbose true\n" +
+                            "        recurse true\n" +
+                            "        debug true\n" +
+                            "        autoDetectPlugin false\n" +
+                            "        generator 'perl'\n" +
+                            "        generator 'html'\n" +
+                            "        generator 'json'\n" +
+                            "    }\n"),
+                    StandardOpenOption.APPEND);
+
+        final BuildResult gradle = GradleRunner.create()
+                                               .withProjectDir(projectDir.toFile())
+                                               .withGradleVersion(version)
+                                               .withArguments(Arrays.asList("compileThrift", "--info"))
+                                               .withPluginClasspath()
+                                               .build();
+        assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+
+        assertThat(gradle.getOutput()).contains(
+                "-o " +
+                projectDir.toFile().getCanonicalPath() +
+                "/build/generated-sources/thrift --gen perl --gen html --gen json" +
                 " -r -nowarn -strict -v -debug " +
                 projectDir.toFile().getCanonicalPath() +
                 "/src/main/thrift/test.thrift"

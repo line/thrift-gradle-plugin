@@ -20,3 +20,5 @@ set -ev
 ./gradlew -p examples/test1 --refresh-dependencies --rerun-tasks clean check
 
 ./gradlew -p examples/test2 --refresh-dependencies --rerun-tasks clean check
+
+./gradlew -p examples/test3 --refresh-dependencies --rerun-tasks

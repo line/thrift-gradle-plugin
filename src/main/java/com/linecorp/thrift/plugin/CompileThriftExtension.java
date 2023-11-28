@@ -40,6 +40,8 @@ public abstract class CompileThriftExtension {
 
     public abstract Property<Boolean> getCreateGenFolder();
 
+    public abstract Property<Boolean> getAutoDetectPlugin();
+
     public abstract MapProperty<String, String> getGenerators();
 
     public abstract ConfigurableFileCollection getSourceItems();
@@ -70,6 +72,10 @@ public abstract class CompileThriftExtension {
 
     public void recurse(boolean recurse) {
         getRecurse().set(recurse);
+    }
+
+    public void autoDetectPlugin(boolean autoDetectPlugin) {
+        getAutoDetectPlugin().set(autoDetectPlugin);
     }
 
     public void createGenFolder(boolean createGenFolder) {
