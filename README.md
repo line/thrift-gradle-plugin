@@ -45,28 +45,32 @@ The Thrift plugin adds compileThrift task which compiles Thrift IDL files using 
 
 ##### Table-1 Task Properties of compileThrift
 
-| Task Property     | Type                | Default Value                                      |
-|-------------------|---------------------|----------------------------------------------------|
-| thriftExecutable  | String              | thrift                                             |
-| sourceDir         | File                | _projectDir_/src/main/thrift                       |
-| sourceItems       | Object...           | _projectDir_/src/main/thrift                       |
-| outputDir         | File                | _buildDir_/generated-sources/thrift                |
-| includeDirs       | Set<File>           | []                                                 |
-| generators        | Map<String, String> | ['java':''] if JavaPlugin is applied, otherwise [] |
-| nowarn            | boolean             | false                                              |
-| strict            | boolean             | false                                              |
-| verbose           | boolean             | false                                              |
-| recurse           | boolean             | false                                              |
-| debug             | boolean             | false                                              |
-| createGenFolder   | boolean             | true                                               |
+| Task Property    | Type                | Default Value                                                                   |
+|------------------|---------------------|---------------------------------------------------------------------------------|
+| thriftExecutable | String              | thrift                                                                          |
+| sourceDir        | File                | _projectDir_/src/main/thrift                                                    |
+| sourceItems      | Object...           | _projectDir_/src/main/thrift                                                    |
+| outputDir        | File                | _buildDir_/generated-sources/thrift                                             |
+| includeDirs      | Set<File>           | []                                                                              |
+| generators       | Map<String, String> | ['java':''] if autoDetectPlugin is true and JavaPlugin is applied, otherwise [] |
+| nowarn           | boolean             | false                                                                           |
+| strict           | boolean             | false                                                                           |
+| verbose          | boolean             | false                                                                           |
+| recurse          | boolean             | false                                                                           |
+| debug            | boolean             | false                                                                           |
+| createGenFolder  | boolean             | true                                                                            |
+| autoDetectPlugin | boolean             | true                                                                            |
 
 If createGenFolder is set to false, no gen-* folder will be created.
 
 sourceDir is only used for backward compatibility
 
 sourceItems are a set of sources, which will be used for generating java files from thrift.
-A source can either be a path specified as a string or a file. In case a source is a relative path the source will be relative to _srcDir_. 
-In case a source is a directory, the directory will be scanned recursively for *.thrift files and used.   
+A source can either be a path specified as a string or a file. In case a source is a relative path the source will be relative to _srcDir_.
+In case a source is a directory, the directory will be scanned recursively for *.thrift files and used.
+
+When autoDetectPlugin is true, generator 'java' will be created and the generated java code will be added to Java source automatically.
+We can disable this by setting autoDetectPlugin to false.
 
 ##### Example
 
@@ -78,7 +82,3 @@ compileThrift {
     generator 'java', 'private-members'
 }
 ```
-
-### Default Behaviors
-
-When JavaPlugin is applied, generator 'java' will be created and the generated java code will be added to Java source automatically.
