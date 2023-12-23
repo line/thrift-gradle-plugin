@@ -17,10 +17,10 @@ set -ev
 
 ./gradlew publishToMavenLocal
 
-./gradlew -p examples/test1 --refresh-dependencies --rerun-tasks clean check
+./gradlew -p examples/java-project --refresh-dependencies --rerun-tasks clean check
 
-./gradlew -p examples/test2 --refresh-dependencies --rerun-tasks clean check
+./gradlew -p examples/disable-java-plugin-detection --refresh-dependencies --rerun-tasks clean check
 
-./gradlew -p examples/test3 --refresh-dependencies --rerun-tasks clean compileThrift
+./gradlew -p examples/no-java-plugin --refresh-dependencies --rerun-tasks clean compileThrift
 
-./gradlew -p examples/test4 --refresh-dependencies --rerun-tasks clean check
+./gradlew -p examples/define-task-manually --refresh-dependencies --rerun-tasks clean check
