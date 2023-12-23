@@ -38,9 +38,10 @@ compileThrift {
     autoDetectPlugin false
 }
 
-tasks.register("customCompileThrift", CompileThrift.class) {
+tasks.register("customCompileThrift", CompileThrift) {
     thriftExecutable = "../../lib/thrift/0.17.0/thrift.${osdetector.classifier}"
     sourceItems.from(layout.projectDirectory.dir("src/main/thrift"))
+    // Using custom build folder
     outputDir.set(layout.buildDirectory.dir("gen-gen-src"))
     generators.put('java', 'private-members')
 }
