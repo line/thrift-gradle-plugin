@@ -1,7 +1,7 @@
 name: Gradle Plugin Publish
 on:
   release:
-    types: [ created ]
+    types: [ published ]
 
 jobs:
   publish:
@@ -22,7 +22,7 @@ jobs:
       - name: Show version number
         id: version
         run: |
-          echo "Version=${{ github.event.release.tag_name }}"
+          echo "Version=${{ github.ref_name }}"
 
       - name: Publish plugins with gradle
         env:
