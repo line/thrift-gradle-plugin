@@ -14,3 +14,6 @@
 /build
 /test/build
 /examples/*/build/
+/examples/*/gradle/
+/examples/*/gradlew
+/examples/*/gradlew.bat

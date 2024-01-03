@@ -1,5 +1,7 @@
+import com.linecorp.thrift.plugin.CompileThrift
+
 /*
- * Based on jruyi/thrift-gradle-plugin/../examples/test2/build.gradle
+ * Based on jruyi/thrift-gradle-plugin/../examples/test1/build.gradle
  * Modified 2023 LINE Corporation
  *
  * Copyright 2023 LINE Corporation
@@ -32,5 +34,27 @@ dependencies {
 }
 
 compileThrift {
-    thriftExecutable "../../lib/thrift/0.17.0/thrift.${osdetector.classifier}"
+    // Disable default compileThriftTask
+    autoDetectPlugin false
+}
+
+tasks.register("customCompileThrift", CompileThrift) {
+    thriftExecutable = "../../lib/thrift/0.17.0/thrift.${osdetector.classifier}"
+    sourceItems.from(layout.projectDirectory.dir("src/main/thrift"))
+    // Using custom build folder
+    outputDir.set(layout.buildDirectory.dir("gen-gen-src"))
+    generators.put('java', 'private-members')
+}
+
+// We need to set task dependency and sourceSets manually for custom task.
+tasks.named("compileJava") {
+    dependsOn("customCompileThrift")
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir layout.buildDirectory.dir("gen-gen-src")
+        }
+    }
 }

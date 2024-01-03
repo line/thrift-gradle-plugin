@@ -18,8 +18,19 @@
  */
 package com.linecorp.thrift.plugin;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.Directory;
+import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskProvider;
 
 public class ThriftPlugin implements Plugin<Project> {
 
@@ -29,8 +40,111 @@ public class ThriftPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        final CompileThrift compileThrift = project.getTasks().create(COMPILE_THRIFT_TASK, CompileThrift.class);
-        compileThrift.sourceDir(project.getProjectDir() + "/src/main/thrift");
-        compileThrift.outputDir(project.getBuildDir() + "/generated-sources/thrift");
+        setupDefaultValuesForTask(project);
+        final CompileThriftExtension extension = createExtension(project);
+        final TaskProvider<CompileThrift> compileThriftTaskProvider = registerDefaultTask(project, extension);
+
+        project.getPluginManager().withPlugin("java", appliedPlugin -> {
+            // In the future if we start to support kotlin, we may need to let user choose which one they want
+            // to generate.
+            extension.getGenerators().putAll(extension.getAutoDetectPlugin().map(autoDetect -> {
+                final Map<String, String> map = new HashMap<>();
+                if (autoDetect) {
+                    map.put("java", "");
+                }
+                return map;
+            }));
+
+            project.getTasks().named(JavaPlugin.COMPILE_JAVA_TASK_NAME).configure(task -> {
+                task.dependsOn(extension.getGenerators().flatMap(generators -> {
+                    if (generators.containsKey("java")) {
+                        return compileThriftTaskProvider;
+                    } else {
+                        return project.provider(ArrayList::new);
+                    }
+                }));
+            });
+
+            final SourceSetContainer sourceSetContainer =
+                    project.getExtensions().getByType(SourceSetContainer.class);
+            final SourceSet mainSourceSet = sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            final Provider<Object> outputDirectory = extension.getGenerators().flatMap(generators -> {
+                if (generators.containsKey("java")) {
+                    return compileThriftTaskProvider
+                            .flatMap(CompileThrift::getOutputDir)
+                            .zip(compileThriftTaskProvider.flatMap(CompileThrift::getCreateGenFolder),
+                                 (directory, genFolder) -> {
+                                     if (genFolder) {
+                                         return directory.dir("gen-java");
+                                     } else {
+                                         return directory;
+                                     }
+                                 });
+                } else {
+                    return project.provider(ArrayList::new);
+                }
+            });
+            mainSourceSet.getJava().srcDir(outputDirectory);
+        });
+    }
+
+    private void setupDefaultValuesForTask(Project project) {
+        project.getTasks().withType(CompileThrift.class).configureEach(task -> {
+            task.getThriftExecutable().convention("thrift");
+            task.getNowarn().convention(false);
+            task.getVerbose().convention(false);
+            task.getStrict().convention(false);
+            task.getDebug().convention(false);
+            task.getRecurse().convention(false);
+            task.getCreateGenFolder().convention(true);
+        });
+    }
+
+    private TaskProvider<CompileThrift> registerDefaultTask(Project project,
+                                                            CompileThriftExtension extension) {
+        final TaskProvider<CompileThrift> compileThriftTaskProvider =
+                project.getTasks().register(COMPILE_THRIFT_TASK, CompileThrift.class);
+
+        compileThriftTaskProvider.configure(task -> {
+            task.getThriftExecutable().set(extension.getThriftExecutable());
+            task.getNowarn().set(extension.getNowarn());
+            task.getVerbose().set(extension.getVerbose());
+            task.getStrict().set(extension.getStrict());
+            task.getDebug().set(extension.getDebug());
+            task.getRecurse().set(extension.getRecurse());
+            task.getGenerators().set(extension.getGenerators());
+            task.getCreateGenFolder().set(extension.getCreateGenFolder());
+            task.getIncludeDirs().setFrom(extension.getIncludeDirs());
+            task.getOutputDir().set(extension.getOutputDir());
+
+            // Give default value for ConfigurableFileCollection,
+            // If we set this at createExtension, it's not easy to remove set one from Collection when we want
+            // to change in build.gradle. Because current convention will only allow us to append more items.
+            final Directory dir = project.getLayout().getProjectDirectory().dir("src/main/thrift");
+            // Looks like getElements can return Provider.
+            task.getSourceItems().setFrom(extension.getSourceItems().getElements().map(locations -> {
+                if (locations.isEmpty()) {
+                    return Collections.singleton(dir);
+                }
+                return locations;
+            }));
+        });
+        return compileThriftTaskProvider;
+    }
+
+    private CompileThriftExtension createExtension(Project project) {
+        final CompileThriftExtension extension = project.getExtensions().create("compileThrift",
+                                                                                CompileThriftExtension.class);
+        extension.getThriftExecutable().convention("thrift");
+        extension.getNowarn().convention(false);
+        extension.getVerbose().convention(false);
+        extension.getStrict().convention(false);
+        extension.getDebug().convention(false);
+        extension.getRecurse().convention(false);
+        extension.getAutoDetectPlugin().convention(true);
+        extension.getCreateGenFolder().convention(true);
+        extension.getOutputDir().convention(
+                project.getLayout().getBuildDirectory().dir("generated-sources/thrift"));
+        return extension;
     }
 }
