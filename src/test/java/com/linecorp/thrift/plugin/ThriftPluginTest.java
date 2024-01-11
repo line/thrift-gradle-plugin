@@ -325,6 +325,45 @@ public class ThriftPluginTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "7.6", "8.0", "8.1" })
+    public void generateJavaMultipleSourceItem(String version) throws Exception {
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("thrift1"));
+        copyFile(Paths.get("src/test/resources/test2.thrift"), projectDir.resolve("thrift2"));
+
+        Files.write(buildFile,
+                    Collections.singletonList(
+                            "    compileThrift {\n" +
+                            "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        sourceItems layout.projectDirectory.file(\"thrift1/test.thrift\"), " +
+                            "layout.projectDirectory.dir(\"thrift2\")\n" +
+                            "    }\n"),
+                    StandardOpenOption.APPEND);
+
+        final BuildResult gradle = GradleRunner.create()
+                                               .withProjectDir(projectDir.toFile())
+                                               .withGradleVersion(version)
+                                               .withArguments("compileJava", "--info")
+                                               .withPluginClasspath()
+                                               .build();
+
+        assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(gradle.getOutput()).contains("-o " + projectDir.toFile().getCanonicalPath());
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService.java")
+        ).exists();
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService2.java")
+        ).exists();
+
+        assertThat(projectDir.resolve("build/classes/java/main")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService.class")
+        ).exists();
+        assertThat(projectDir.resolve("build/classes/java/main")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService2.class")
+        ).exists();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
     public void generateJava(String version) throws Exception {
         copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("src/main/thrift"));
         Files.write(buildFile,
