@@ -28,17 +28,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
@@ -82,6 +86,12 @@ public abstract class CompileThrift extends DefaultTask {
 
     @Input
     public abstract MapProperty<String, String> getGenerators();
+
+    @Inject
+    public abstract ExecOperations getExecOperations();
+
+    @Inject
+    public abstract ObjectFactory getObjectFactory();
 
     @TaskAction
     void compileThrift(InputChanges inputs) {
@@ -133,7 +143,7 @@ public abstract class CompileThrift extends DefaultTask {
                 resolvedSourceItems.add(sourceItem.getAbsolutePath());
             } else if (sourceItem.isDirectory()) {
                 try {
-                    getProject().fileTree(sourceItem.getCanonicalPath(), files -> {
+                    getObjectFactory().fileTree().from(sourceItem.getCanonicalPath()).matching(files -> {
                         files.include("**/*.thrift");
                     }).forEach(file -> resolvedSourceItems.add(file.getAbsolutePath()));
                 } catch (IOException e) {
@@ -189,7 +199,7 @@ public abstract class CompileThrift extends DefaultTask {
         }
         cmdLine.add(source);
 
-        final ExecResult result = getProject().exec(execSpec -> {
+        final ExecResult result = getExecOperations().exec(execSpec -> {
             execSpec.commandLine(cmdLine);
         });
 
