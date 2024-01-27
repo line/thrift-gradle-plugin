@@ -1,5 +1,3 @@
-import com.linecorp.thrift.plugin.CompileThrift
-
 /*
  * Based on jruyi/thrift-gradle-plugin/../examples/test1/build.gradle
  * Modified 2023 LINE Corporation
@@ -38,7 +36,7 @@ compileThrift {
     autoDetectPlugin false
 }
 
-tasks.register("customCompileThrift", CompileThrift) {
+tasks.register("customCompileThrift", com.linecorp.thrift.plugin.CompileThrift) {
     thriftExecutable = "../../lib/thrift/0.17.0/thrift.${osdetector.classifier}"
     sourceItems.from(layout.projectDirectory.dir("src/main/thrift"))
     // Using custom build folder
