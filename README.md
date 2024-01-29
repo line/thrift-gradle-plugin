@@ -48,7 +48,7 @@ You can use thrift extension to configure the added compileThrift task.
 
 ##### Table-1 Properties of compileThrift Extension
 
-| Task property    | Type                | Default value of compileThrift add by plugin                                    |
+| Task property    | Type                | Default value of compileThrift added by plugin                                    |
 |------------------|---------------------|---------------------------------------------------------------------------------|
 | thriftExecutable | String              | thrift                                                                          |
 | sourceDir        | File                | _projectDir_/src/main/thrift                                                    |
