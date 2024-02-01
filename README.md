@@ -12,7 +12,7 @@ To use this plugin, add the following to your build script.
 
 ```groovy
 plugins {
-    id "com.linecorp.thrift-gradle-plugin" version "0.6.0"
+    id "com.linecorp.thrift-gradle-plugin" version "0.6.1"
 }
 ```
 
@@ -26,7 +26,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath("com.linecorp.thrift-gradle-plugin:com.linecorp.thrift-gradle-plugin.gradle.plugin:0.6.0")
+        classpath("com.linecorp.thrift-gradle-plugin:com.linecorp.thrift-gradle-plugin.gradle.plugin:0.6.1")
     }
 }
 
