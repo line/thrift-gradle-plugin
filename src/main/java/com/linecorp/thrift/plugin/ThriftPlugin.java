@@ -40,7 +40,6 @@ public class ThriftPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        setupDefaultValuesForTask(project);
         final CompileThriftExtension extension = createExtension(project);
         final TaskProvider<CompileThrift> compileThriftTaskProvider = registerDefaultTask(project, extension);
 
@@ -85,18 +84,6 @@ public class ThriftPlugin implements Plugin<Project> {
                 }
             });
             mainSourceSet.getJava().srcDir(outputDirectory);
-        });
-    }
-
-    private void setupDefaultValuesForTask(Project project) {
-        project.getTasks().withType(CompileThrift.class).configureEach(task -> {
-            task.getThriftExecutable().convention("thrift");
-            task.getNowarn().convention(false);
-            task.getVerbose().convention(false);
-            task.getStrict().convention(false);
-            task.getDebug().convention(false);
-            task.getRecurse().convention(false);
-            task.getCreateGenFolder().convention(true);
         });
     }
 

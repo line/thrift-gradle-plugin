@@ -40,6 +40,7 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.ExecOperations;
@@ -64,24 +65,31 @@ public abstract class CompileThrift extends DefaultTask {
     public abstract ConfigurableFileCollection getIncludeDirs();
 
     @Input
+    @Optional
     public abstract Property<String> getThriftExecutable();
 
     @Input
+    @Optional
     public abstract Property<Boolean> getCreateGenFolder();
 
     @Input
+    @Optional
     public abstract Property<Boolean> getNowarn();
 
     @Input
+    @Optional
     public abstract Property<Boolean> getStrict();
 
     @Input
+    @Optional
     public abstract Property<Boolean> getRecurse();
 
     @Input
+    @Optional
     public abstract Property<Boolean> getDebug();
 
     @Input
+    @Optional
     public abstract Property<Boolean> getVerbose();
 
     @Input
@@ -164,7 +172,8 @@ public abstract class CompileThrift extends DefaultTask {
     void compile(String source) {
         final File outputDirFile = getOutputDir().getAsFile().get();
         final List<String> cmdLine = new ArrayList<>(
-                Arrays.asList(getThriftExecutable().get(), getCreateGenFolder().get() ? "-o" : "-out",
+                Arrays.asList(getThriftExecutable().getOrElse("thrift"),
+                              getCreateGenFolder().getOrElse(true) ? "-o" : "-out",
                               outputDirFile.getAbsolutePath()));
         getGenerators().get().forEach((key, value) -> {
             cmdLine.add("--gen");
@@ -182,19 +191,19 @@ public abstract class CompileThrift extends DefaultTask {
             cmdLine.add(includeDir.getAbsolutePath());
         });
 
-        if (getRecurse().get()) {
+        if (getRecurse().getOrElse(false)) {
             cmdLine.add("-r");
         }
-        if (getNowarn().get()) {
+        if (getNowarn().getOrElse(false)) {
             cmdLine.add("-nowarn");
         }
-        if (getStrict().get()) {
+        if (getStrict().getOrElse(false)) {
             cmdLine.add("-strict");
         }
-        if (getVerbose().get()) {
+        if (getVerbose().getOrElse(false)) {
             cmdLine.add("-v");
         }
-        if (getDebug().get()) {
+        if (getDebug().getOrElse(false)) {
             cmdLine.add("-debug");
         }
         cmdLine.add(source);
