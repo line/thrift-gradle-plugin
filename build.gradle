@@ -24,7 +24,7 @@ plugins {
 }
 
 group = 'com.linecorp.thrift-gradle-plugin'
-version = System.getenv("PLUGIN_VERSION") ?: "0.6.1-SNAPSHOT"
+version = System.getenv("PLUGIN_VERSION") ?: "0.6.2-SNAPSHOT"
 
 repositories {
     mavenCentral()
