@@ -24,3 +24,5 @@ set -ev
 ./gradlew -p examples/no-java-plugin --refresh-dependencies --rerun-tasks clean compileThrift
 
 ./gradlew -p examples/define-task-manually --refresh-dependencies --rerun-tasks clean check
+
+./gradlew -p examples/auto-download --refresh-dependencies --rerun-tasks clean check

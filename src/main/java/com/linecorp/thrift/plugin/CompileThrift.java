@@ -39,6 +39,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -94,6 +95,22 @@ public abstract class CompileThrift extends DefaultTask {
 
     @Input
     public abstract MapProperty<String, String> getGenerators();
+
+    @Input
+    @Optional
+    public abstract Property<Boolean> getAutoDownload();
+
+    @Input
+    @Optional
+    public abstract Property<String> getThriftVersion();
+
+    @Input
+    @Optional
+    public abstract Property<String> getThriftRepository();
+
+    @InputFiles
+    @Optional
+    public abstract DirectoryProperty getLocalBinaryDir();
 
     @Inject
     public abstract ExecOperations getExecOperations();
@@ -171,8 +188,9 @@ public abstract class CompileThrift extends DefaultTask {
 
     void compile(String source) {
         final File outputDirFile = getOutputDir().getAsFile().get();
+        final String thriftExecutable = resolveThriftExecutable();
         final List<String> cmdLine = new ArrayList<>(
-                Arrays.asList(getThriftExecutable().getOrElse("thrift"),
+                Arrays.asList(thriftExecutable,
                               getCreateGenFolder().getOrElse(true) ? "-o" : "-out",
                               outputDirFile.getAbsolutePath()));
         getGenerators().get().forEach((key, value) -> {
@@ -216,5 +234,23 @@ public abstract class CompileThrift extends DefaultTask {
         if (exitCode != 0) {
             throw new GradleException("Failed to compile " + source + ", exit=" + exitCode);
         }
+    }
+
+    private String resolveThriftExecutable() {
+        final String configuredExecutable = getThriftExecutable().getOrElse("thrift");
+
+        if (!"thrift".equals(configuredExecutable) || !getAutoDownload().getOrElse(true)) {
+            return configuredExecutable;
+        }
+
+        final ThriftBinaryDownloader downloader = new ThriftBinaryDownloader(
+                getLogger(),
+                getThriftRepository().getOrElse(ThriftPlugin.DEFAULT_THRIFT_REPOSITORY),
+                getThriftVersion().getOrElse(ThriftPlugin.DEFAULT_THRIFT_VERSION),
+                getLocalBinaryDir().getAsFile().get()
+        );
+
+        final File downloadedBinary = downloader.downloadBinary();
+        return downloadedBinary.getAbsolutePath();
     }
 }

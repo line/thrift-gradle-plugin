@@ -37,6 +37,8 @@ public class ThriftPlugin implements Plugin<Project> {
     // Forked from https://github.com/jruyi/thrift-gradle-plugin/blob/aef83035ffe141b0507f5a2254aa1f7193976c4a/src/main/groovy/org/jruyi/gradle/thrift/plugin/ThriftPlugin.groovy
 
     public static final String COMPILE_THRIFT_TASK = "compileThrift";
+    public static final String DEFAULT_THRIFT_VERSION = "0.17";
+    public static final String DEFAULT_THRIFT_REPOSITORY = "https://raw.githubusercontent.com/line/armeria/433ed1a3118a97988f7064aa9cfd0ea9056e7782/gradle/scripts/lib/thrift";
 
     @Override
     public void apply(Project project) {
@@ -94,6 +96,10 @@ public class ThriftPlugin implements Plugin<Project> {
 
         compileThriftTaskProvider.configure(task -> {
             task.getThriftExecutable().set(extension.getThriftExecutable());
+            task.getAutoDownload().set(extension.getAutoDownload());
+            task.getThriftVersion().set(extension.getThriftVersion());
+            task.getThriftRepository().set(extension.getThriftRepository());
+            task.getLocalBinaryDir().set(extension.getLocalBinaryDir());
             task.getNowarn().set(extension.getNowarn());
             task.getVerbose().set(extension.getVerbose());
             task.getStrict().set(extension.getStrict());
@@ -130,6 +136,11 @@ public class ThriftPlugin implements Plugin<Project> {
         extension.getRecurse().convention(false);
         extension.getAutoDetectPlugin().convention(true);
         extension.getCreateGenFolder().convention(true);
+        extension.getAutoDownload().convention(true);
+        extension.getThriftVersion().convention(DEFAULT_THRIFT_VERSION);
+        extension.getThriftRepository().convention(DEFAULT_THRIFT_REPOSITORY);
+        extension.getLocalBinaryDir().convention(
+                project.getLayout().getBuildDirectory().dir("thrift-binaries"));
         extension.getOutputDir().convention(
                 project.getLayout().getBuildDirectory().dir("generated-sources/thrift"));
         return extension;
