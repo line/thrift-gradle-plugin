@@ -33,7 +33,7 @@ dependencies {
 
 compileThrift {
     sourceDir "$projectDir/src/main/thrift"
-    outputDir "$buildDir/gen-src"
+    outputDir layout.buildDirectory.file("/gen-src")
     autoDownload true
 
     nowarn true

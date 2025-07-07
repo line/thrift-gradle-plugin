@@ -72,7 +72,7 @@ public class ThriftBinaryDownloader {
         }
     }
 
-    private String detectPlatform() {
+    private static String detectPlatform() {
         final String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
         final String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
 
