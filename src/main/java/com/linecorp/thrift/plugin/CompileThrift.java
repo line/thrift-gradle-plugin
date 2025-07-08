@@ -239,7 +239,7 @@ public abstract class CompileThrift extends DefaultTask {
     private String resolveThriftExecutable() {
         final String configuredExecutable = getThriftExecutable().getOrElse("thrift");
 
-        if (!"thrift".equals(configuredExecutable) || !getAutoDownload().getOrElse(true)) {
+        if (!"thrift".equals(configuredExecutable) || !getAutoDownload().getOrElse(false)) {
             return configuredExecutable;
         }
 

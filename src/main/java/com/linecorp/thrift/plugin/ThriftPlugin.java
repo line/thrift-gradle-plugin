@@ -136,7 +136,7 @@ public class ThriftPlugin implements Plugin<Project> {
         extension.getRecurse().convention(false);
         extension.getAutoDetectPlugin().convention(true);
         extension.getCreateGenFolder().convention(true);
-        extension.getAutoDownload().convention(true);
+        extension.getAutoDownload().convention(false);
         extension.getThriftVersion().convention(DEFAULT_THRIFT_VERSION);
         extension.getThriftRepository().convention(DEFAULT_THRIFT_REPOSITORY);
         extension.getLocalBinaryDir().convention(
