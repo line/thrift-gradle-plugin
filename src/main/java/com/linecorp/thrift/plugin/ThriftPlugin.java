@@ -38,7 +38,7 @@ public class ThriftPlugin implements Plugin<Project> {
 
     public static final String COMPILE_THRIFT_TASK = "compileThrift";
     public static final String DEFAULT_THRIFT_VERSION = "0.17";
-    public static final String DEFAULT_THRIFT_REPOSITORY = "https://raw.githubusercontent.com/line/armeria/433ed1a3118a97988f7064aa9cfd0ea9056e7782/gradle/scripts/lib/thrift";
+    public static final String DEFAULT_THRIFT_REPOSITORY = "https://raw.githubusercontent.com/line/gradle-scripts/587453b11b7c2bc43fdc0b1a5f5e9e3ad5a5a8ad/lib/thrift";
 
     @Override
     public void apply(Project project) {

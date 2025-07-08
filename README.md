@@ -65,7 +65,7 @@ You can use thrift extension to configure the added compileThrift task.
 | autoDetectPlugin   | boolean             | true                                                                            |
 | autoDownload       | boolean             | false                                                                           |
 | thriftVersion      | String              | 0.17                                                                            |
-| thriftRepository   | String              | https://raw.githubusercontent.com/line/armeria/.../thrift                       |
+| thriftRepository   | String              | https://raw.githubusercontent.com/line/gradle-scripts/587453b11b7c2bc43fdc0b1a5f5e9e3ad5a5a8ad/lib/thrift |
 | localBinaryDir     | File                | _buildDir_/thrift-binaries                                                      |
 
 If createGenFolder is set to false, no gen-* folder will be created.
