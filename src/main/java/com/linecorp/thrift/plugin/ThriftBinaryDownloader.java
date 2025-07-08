@@ -16,9 +16,6 @@
 
 package com.linecorp.thrift.plugin;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.logging.Logger;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +26,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 
+import org.gradle.api.GradleException;
+import org.gradle.api.logging.Logger;
+
 public class ThriftBinaryDownloader {
     private final Logger logger;
     private final String repository;
@@ -36,7 +36,8 @@ public class ThriftBinaryDownloader {
     private final File localBinaryDir;
     private final String classifier;
 
-    public ThriftBinaryDownloader(Logger logger, String repository, String version, File localBinaryDir, String classifier) {
+    public ThriftBinaryDownloader(Logger logger, String repository, String version, File localBinaryDir,
+                                  String classifier) {
         this.logger = logger;
         this.repository = repository;
         this.version = version;

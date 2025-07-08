@@ -19,6 +19,19 @@
 
 package com.linecorp.thrift.plugin;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.inject.Inject;
+
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -27,22 +40,17 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
 
 public abstract class CompileThrift extends DefaultTask {
 
@@ -184,8 +192,8 @@ public abstract class CompileThrift extends DefaultTask {
         final String thriftExecutable = resolveThriftExecutable();
         final List<String> cmdLine = new ArrayList<>(
                 Arrays.asList(thriftExecutable,
-                        getCreateGenFolder().getOrElse(true) ? "-o" : "-out",
-                        outputDirFile.getAbsolutePath()));
+                              getCreateGenFolder().getOrElse(true) ? "-o" : "-out",
+                              outputDirFile.getAbsolutePath()));
         getGenerators().get().forEach((key, value) -> {
             cmdLine.add("--gen");
 

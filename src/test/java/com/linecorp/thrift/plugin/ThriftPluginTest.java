@@ -661,10 +661,10 @@ public class ThriftPluginTest {
                     StandardOpenOption.APPEND);
 
         final GradleRunner runner = GradleRunner.create()
-                                               .withProjectDir(projectDir.toFile())
-                                               .withGradleVersion(version)
-                                               .withArguments("compileJava", "--info")
-                                               .withPluginClasspath();
+                                                .withProjectDir(projectDir.toFile())
+                                                .withGradleVersion(version)
+                                                .withArguments("compileJava", "--info")
+                                                .withPluginClasspath();
 
         // First run - should download
         final BuildResult firstRun = runner.build();
