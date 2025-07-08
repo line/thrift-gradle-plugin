@@ -65,7 +65,6 @@ javaVersions.each { version ->
     def testOnSpecificVersion = tasks.register("testsOn$version", Test) {
         javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(version)
-
         }
     }
     tasks.named('check').configure {
