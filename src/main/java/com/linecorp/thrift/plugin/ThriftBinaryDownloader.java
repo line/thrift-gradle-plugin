@@ -16,6 +16,9 @@
 
 package com.linecorp.thrift.plugin;
 
+import org.gradle.api.GradleException;
+import org.gradle.api.logging.Logger;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -26,26 +29,23 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.logging.Logger;
-
 public class ThriftBinaryDownloader {
-
     private final Logger logger;
     private final String repository;
     private final String version;
     private final File localBinaryDir;
+    private final String classifier;
 
-    public ThriftBinaryDownloader(Logger logger, String repository, String version, File localBinaryDir) {
+    public ThriftBinaryDownloader(Logger logger, String repository, String version, File localBinaryDir, String classifier) {
         this.logger = logger;
         this.repository = repository;
         this.version = version;
         this.localBinaryDir = localBinaryDir;
+        this.classifier = classifier;
     }
 
     public File downloadBinary() {
-        final String platform = detectPlatform();
-        final String binaryName = "thrift." + platform + (isWindows() ? ".exe" : "");
+        final String binaryName = "thrift." + classifier + (isWindows(classifier) ? ".exe" : "");
         final File versionDir = new File(localBinaryDir, version);
         final File localBinary = new File(versionDir, binaryName);
 
@@ -54,7 +54,7 @@ public class ThriftBinaryDownloader {
             return localBinary;
         }
 
-        logger.info("Downloading thrift binary for platform: {}", platform);
+        logger.info("Downloading thrift binary for platform: {}", classifier);
 
         if (!versionDir.exists() && !versionDir.mkdirs()) {
             throw new GradleException("Failed to create directory: " + versionDir.getAbsolutePath());
@@ -72,35 +72,16 @@ public class ThriftBinaryDownloader {
         }
     }
 
-    private static String detectPlatform() {
-        final String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
-        final String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
-
-        final String osName;
-        if (os.contains("win")) {
-            osName = "windows";
-        } else if (os.contains("mac") || os.contains("darwin")) {
-            osName = "osx";
-        } else if (os.contains("linux")) {
-            osName = "linux";
-        } else {
-            throw new GradleException("Unsupported operating system: " + os);
+    private void setExecutablePermissions(File file) {
+        if (!isWindows(classifier)) {
+            if (!file.setExecutable(true)) {
+                logger.warn("Failed to set executable permissions for: {}", file.getAbsolutePath());
+            }
         }
-
-        final String archName;
-        if (arch.contains("aarch64") || arch.contains("arm64")) {
-            archName = "aarch_64";
-        } else if (arch.contains("x86_64") || arch.contains("amd64")) {
-            archName = "x86_64";
-        } else {
-            throw new GradleException("Unsupported architecture: " + arch);
-        }
-
-        return osName + '-' + archName;
     }
 
-    private static boolean isWindows() {
-        return System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win");
+    private static boolean isWindows(String classifier) {
+        return classifier.toLowerCase(Locale.ENGLISH).contains("windows");
     }
 
     private static void downloadFile(String url, File destination) throws IOException {
@@ -109,14 +90,6 @@ public class ThriftBinaryDownloader {
 
         try (InputStream inputStream = new BufferedInputStream(downloadUrl.openStream())) {
             Files.copy(inputStream, destinationPath, StandardCopyOption.REPLACE_EXISTING);
-        }
-    }
-
-    private void setExecutablePermissions(File file) {
-        if (!isWindows()) {
-            if (!file.setExecutable(true)) {
-                logger.warn("Failed to set executable permissions for: {}", file.getAbsolutePath());
-            }
         }
     }
 }

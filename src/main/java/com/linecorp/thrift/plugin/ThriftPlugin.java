@@ -18,11 +18,6 @@
  */
 package com.linecorp.thrift.plugin;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
@@ -31,6 +26,11 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ThriftPlugin implements Plugin<Project> {
 
@@ -42,6 +42,8 @@ public class ThriftPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
+        project.getPluginManager().apply("com.google.osdetector");
+
         final CompileThriftExtension extension = createExtension(project);
         final TaskProvider<CompileThrift> compileThriftTaskProvider = registerDefaultTask(project, extension);
 
@@ -74,13 +76,13 @@ public class ThriftPlugin implements Plugin<Project> {
                     return compileThriftTaskProvider
                             .flatMap(CompileThrift::getOutputDir)
                             .zip(compileThriftTaskProvider.flatMap(CompileThrift::getCreateGenFolder),
-                                 (directory, genFolder) -> {
-                                     if (genFolder) {
-                                         return directory.dir("gen-java");
-                                     } else {
-                                         return directory;
-                                     }
-                                 });
+                                    (directory, genFolder) -> {
+                                        if (genFolder) {
+                                            return directory.dir("gen-java");
+                                        } else {
+                                            return directory;
+                                        }
+                                    });
                 } else {
                     return project.provider(ArrayList::new);
                 }
@@ -127,7 +129,7 @@ public class ThriftPlugin implements Plugin<Project> {
 
     private CompileThriftExtension createExtension(Project project) {
         final CompileThriftExtension extension = project.getExtensions().create("compileThrift",
-                                                                                CompileThriftExtension.class);
+                CompileThriftExtension.class);
         extension.getThriftExecutable().convention("thrift");
         extension.getNowarn().convention(false);
         extension.getVerbose().convention(false);
