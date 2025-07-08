@@ -63,11 +63,9 @@ tasks.withType(Checkstyle).configureEach {
 def javaVersions = [11, 17]
 javaVersions.each { version ->
     def testOnSpecificVersion = tasks.register("testsOn$version", Test) {
-        testClassesDirs = testing.suites.test.sources.output.classesDirs
-        classpath = testing.suites.test.sources.runtimeClasspath
-
         javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(version)
+
         }
     }
     tasks.named('check').configure {
