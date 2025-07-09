@@ -31,6 +31,8 @@ repositories {
 }
 
 dependencies {
+    implementation("com.google.gradle:osdetector-gradle-plugin:1.7.3")
+
     testImplementation "org.assertj:assertj-core:3.27.3"
     testImplementation "org.junit.jupiter:junit-jupiter:5.12.2"
     testImplementation "org.mockito:mockito-junit-jupiter:5.18.0"

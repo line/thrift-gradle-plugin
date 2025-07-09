@@ -42,6 +42,14 @@ public abstract class CompileThriftExtension {
 
     public abstract Property<Boolean> getAutoDetectPlugin();
 
+    public abstract Property<Boolean> getAutoDownload();
+
+    public abstract Property<String> getThriftVersion();
+
+    public abstract Property<String> getThriftRepository();
+
+    public abstract DirectoryProperty getLocalBinaryDir();
+
     public abstract MapProperty<String, String> getGenerators();
 
     public abstract ConfigurableFileCollection getSourceItems();
@@ -80,6 +88,34 @@ public abstract class CompileThriftExtension {
 
     public void createGenFolder(boolean createGenFolder) {
         getCreateGenFolder().set(createGenFolder);
+    }
+
+    public void autoDownload(boolean autoDownload) {
+        getAutoDownload().set(autoDownload);
+    }
+
+    public void thriftVersion(String thriftVersion) {
+        getThriftVersion().set(thriftVersion);
+    }
+
+    public void thriftRepository(String thriftRepository) {
+        getThriftRepository().set(thriftRepository);
+    }
+
+    public void localBinaryDir(File localBinaryDir) {
+        getLocalBinaryDir().set(localBinaryDir);
+    }
+
+    public void localBinaryDir(String localBinaryDir) {
+        getLocalBinaryDir().set(new File(localBinaryDir));
+    }
+
+    public void localBinaryDir(Directory localBinaryDir) {
+        getLocalBinaryDir().set(localBinaryDir);
+    }
+
+    public void localBinaryDir(Provider<? extends Directory> localBinaryDir) {
+        getLocalBinaryDir().set(localBinaryDir);
     }
 
     public void sourceDir(Object file) {

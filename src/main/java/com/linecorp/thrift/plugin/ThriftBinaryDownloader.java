@@ -1,0 +1,96 @@
+/*
+ * Copyright 2023 LINE Corporation
+ *
+ * LINE Corporation licenses this file to you under the Apache License,
+ * version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+
+package com.linecorp.thrift.plugin;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Locale;
+
+import org.gradle.api.GradleException;
+import org.gradle.api.logging.Logger;
+
+public class ThriftBinaryDownloader {
+    private final Logger logger;
+    private final String repository;
+    private final String version;
+    private final File localBinaryDir;
+    private final String classifier;
+
+    public ThriftBinaryDownloader(Logger logger, String repository, String version, File localBinaryDir,
+                                  String classifier) {
+        this.logger = logger;
+        this.repository = repository;
+        this.version = version;
+        this.localBinaryDir = localBinaryDir;
+        this.classifier = classifier;
+    }
+
+    public File downloadBinary() {
+        final String binaryName = "thrift." + classifier + (isWindows(classifier) ? ".exe" : "");
+        final File versionDir = new File(localBinaryDir, version);
+        final File localBinary = new File(versionDir, binaryName);
+
+        if (localBinary.exists()) {
+            logger.info("Thrift binary already exists at: {}", localBinary.getAbsolutePath());
+            return localBinary;
+        }
+
+        logger.info("Downloading thrift binary for platform: {}", classifier);
+
+        if (!versionDir.exists() && !versionDir.mkdirs()) {
+            throw new GradleException("Failed to create directory: " + versionDir.getAbsolutePath());
+        }
+
+        final String downloadUrl = repository + '/' + version + '/' + binaryName;
+
+        try {
+            downloadFile(downloadUrl, localBinary);
+            setExecutablePermissions(localBinary);
+            logger.info("Successfully downloaded thrift binary to: {}", localBinary.getAbsolutePath());
+            return localBinary;
+        } catch (IOException e) {
+            throw new GradleException("Failed to download thrift binary from: " + downloadUrl, e);
+        }
+    }
+
+    private void setExecutablePermissions(File file) {
+        if (!isWindows(classifier)) {
+            if (!file.setExecutable(true)) {
+                logger.warn("Failed to set executable permissions for: {}", file.getAbsolutePath());
+            }
+        }
+    }
+
+    private static boolean isWindows(String classifier) {
+        return classifier.toLowerCase(Locale.ENGLISH).contains("windows");
+    }
+
+    private static void downloadFile(String url, File destination) throws IOException {
+        final URL downloadUrl = new URL(url);
+        final Path destinationPath = destination.toPath();
+
+        try (InputStream inputStream = new BufferedInputStream(downloadUrl.openStream())) {
+            Files.copy(inputStream, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+}

@@ -37,9 +37,13 @@ public class ThriftPlugin implements Plugin<Project> {
     // Forked from https://github.com/jruyi/thrift-gradle-plugin/blob/aef83035ffe141b0507f5a2254aa1f7193976c4a/src/main/groovy/org/jruyi/gradle/thrift/plugin/ThriftPlugin.groovy
 
     public static final String COMPILE_THRIFT_TASK = "compileThrift";
+    public static final String DEFAULT_THRIFT_VERSION = "0.17";
+    public static final String DEFAULT_THRIFT_REPOSITORY = "https://raw.githubusercontent.com/line/gradle-scripts/587453b11b7c2bc43fdc0b1a5f5e9e3ad5a5a8ad/lib/thrift";
 
     @Override
     public void apply(Project project) {
+        project.getPluginManager().apply("com.google.osdetector");
+
         final CompileThriftExtension extension = createExtension(project);
         final TaskProvider<CompileThrift> compileThriftTaskProvider = registerDefaultTask(project, extension);
 
@@ -72,13 +76,13 @@ public class ThriftPlugin implements Plugin<Project> {
                     return compileThriftTaskProvider
                             .flatMap(CompileThrift::getOutputDir)
                             .zip(compileThriftTaskProvider.flatMap(CompileThrift::getCreateGenFolder),
-                                 (directory, genFolder) -> {
-                                     if (genFolder) {
-                                         return directory.dir("gen-java");
-                                     } else {
-                                         return directory;
-                                     }
-                                 });
+                                    (directory, genFolder) -> {
+                                        if (genFolder) {
+                                            return directory.dir("gen-java");
+                                        } else {
+                                            return directory;
+                                        }
+                                    });
                 } else {
                     return project.provider(ArrayList::new);
                 }
@@ -94,6 +98,10 @@ public class ThriftPlugin implements Plugin<Project> {
 
         compileThriftTaskProvider.configure(task -> {
             task.getThriftExecutable().set(extension.getThriftExecutable());
+            task.getAutoDownload().set(extension.getAutoDownload());
+            task.getThriftVersion().set(extension.getThriftVersion());
+            task.getThriftRepository().set(extension.getThriftRepository());
+            task.getLocalBinaryDir().set(extension.getLocalBinaryDir());
             task.getNowarn().set(extension.getNowarn());
             task.getVerbose().set(extension.getVerbose());
             task.getStrict().set(extension.getStrict());
@@ -121,7 +129,7 @@ public class ThriftPlugin implements Plugin<Project> {
 
     private CompileThriftExtension createExtension(Project project) {
         final CompileThriftExtension extension = project.getExtensions().create("compileThrift",
-                                                                                CompileThriftExtension.class);
+                CompileThriftExtension.class);
         extension.getThriftExecutable().convention("thrift");
         extension.getNowarn().convention(false);
         extension.getVerbose().convention(false);
@@ -130,6 +138,11 @@ public class ThriftPlugin implements Plugin<Project> {
         extension.getRecurse().convention(false);
         extension.getAutoDetectPlugin().convention(true);
         extension.getCreateGenFolder().convention(true);
+        extension.getAutoDownload().convention(false);
+        extension.getThriftVersion().convention(DEFAULT_THRIFT_VERSION);
+        extension.getThriftRepository().convention(DEFAULT_THRIFT_REPOSITORY);
+        extension.getLocalBinaryDir().convention(
+                project.getLayout().getBuildDirectory().dir("thrift-binaries"));
         extension.getOutputDir().convention(
                 project.getLayout().getBuildDirectory().dir("generated-sources/thrift"));
         return extension;

@@ -84,6 +84,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
                             "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
                             "        nowarn true\n" +
@@ -132,6 +133,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "    }\n"),
                     StandardOpenOption.APPEND);
 
@@ -164,6 +166,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "    }\n"),
                     StandardOpenOption.APPEND);
 
@@ -192,6 +195,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "        autoDetectPlugin false \n" +
                             "    }\n"),
                     StandardOpenOption.APPEND);
@@ -224,6 +228,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "        outputDir layout.buildDirectory.dir(\"generated/thrift\")\n" +
                             "        createGenFolder false\n" +
                             "    }\n"),
@@ -259,6 +264,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "        sourceDir \"thrift\"\n" +
                             "    }\n"),
                     StandardOpenOption.APPEND);
@@ -294,6 +300,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "        sourceItems layout.projectDirectory.dir(\"thrift1\"), " +
                             "layout.projectDirectory.dir(\"thrift2\")\n" +
                             "    }\n"),
@@ -333,6 +340,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "        sourceItems layout.projectDirectory.file(\"thrift1/test.thrift\"), " +
                             "layout.projectDirectory.dir(\"thrift2\")\n" +
                             "    }\n"),
@@ -370,6 +378,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
                             "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
                             "        nowarn true\n" +
@@ -417,6 +426,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable = \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload = false\n" +
                             "        sourceItems.from(layout.projectDirectory.dir(\"src/main/thrift\"))\n" +
                             "        outputDir = layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
                             "        nowarn = true\n" +
@@ -464,6 +474,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
                             "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
                             "        nowarn true\n" +
@@ -512,6 +523,7 @@ public class ThriftPluginTest {
                     Collections.singletonList(
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
                             "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
                             "        nowarn true\n" +
@@ -562,6 +574,7 @@ public class ThriftPluginTest {
                             "    import com.linecorp.thrift.plugin.CompileThrift\n" +
                             "    compileThrift {\n" +
                             "        thriftExecutable \"" + thriftPathExpression + "\"\n" +
+                            "        autoDownload false\n" +
                             "        sourceDir \"src/main/thrift\"\n" +
                             "        outputDir layout.buildDirectory.dir(\"generated-sources/thrift\")\n" +
                             "        nowarn true\n" +
@@ -598,6 +611,70 @@ public class ThriftPluginTest {
         assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
         assertThat(gradle.getOutput()).doesNotContain("test.thrift");
         assertThat(gradle.getOutput()).contains("test2.thrift");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
+    public void generateJavaWithAutoDownload(String version) throws Exception {
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("src/main/thrift"));
+        Files.write(buildFile,
+                    Collections.singletonList(
+                            "    compileThrift {\n" +
+                            "        autoDownload true\n" +
+                            "        thriftVersion \"0.17\"\n" +
+                            "        localBinaryDir layout.buildDirectory.dir(\"thrift-binaries\")\n" +
+                            "    }\n"),
+                    StandardOpenOption.APPEND);
+
+        final BuildResult gradle = GradleRunner.create()
+                                               .withProjectDir(projectDir.toFile())
+                                               .withGradleVersion(version)
+                                               .withArguments("compileJava", "--info")
+                                               .withPluginClasspath()
+                                               .build();
+
+        assertThat(gradle.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(gradle.getOutput()).contains("Downloading thrift binary for platform:");
+        assertThat(gradle.getOutput()).contains("Successfully downloaded thrift binary to:");
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
+                             .resolve("com/linecorp/thrift/plugin/test/TestService.java")
+        ).exists();
+        assertThat(projectDir.resolve("build/generated-sources/thrift/gen-java")
+                             .resolve("com/linecorp/thrift/plugin/test/TestStruct.java")
+        ).exists();
+        assertThat(projectDir.resolve("build/classes/java/main")
+                             .resolve("com/linecorp/thrift/plugin/test/TestStruct.class")
+        ).exists();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "7.6", "8.0", "8.1" })
+    public void generateJavaWithAutoDownloadReuseExisting(String version) throws Exception {
+        copyFile(Paths.get("src/test/resources/test.thrift"), projectDir.resolve("src/main/thrift"));
+        Files.write(buildFile,
+                    Collections.singletonList(
+                            "    compileThrift {\n" +
+                            "        autoDownload true\n" +
+                            "        thriftVersion \"0.17\"\n" +
+                            "        localBinaryDir layout.buildDirectory.dir(\"thrift-binaries\")\n" +
+                            "    }\n"),
+                    StandardOpenOption.APPEND);
+
+        final GradleRunner runner = GradleRunner.create()
+                                                .withProjectDir(projectDir.toFile())
+                                                .withGradleVersion(version)
+                                                .withArguments("compileJava", "--info")
+                                                .withPluginClasspath();
+
+        // First run - should download
+        final BuildResult firstRun = runner.build();
+        assertThat(firstRun.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(firstRun.getOutput()).contains("Downloading thrift binary for platform:");
+
+        // Second run - should reuse existing binary
+        final BuildResult secondRun = runner.build();
+        assertThat(secondRun.task(":compileThrift").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(secondRun.getOutput()).contains("Thrift binary already exists at:");
     }
 
     private Path copyFile(Path source, Path targetDirectory) throws IOException {

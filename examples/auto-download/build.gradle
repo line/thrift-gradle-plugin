@@ -32,9 +32,9 @@ dependencies {
 }
 
 compileThrift {
-    thriftExecutable "../../lib/thrift/0.17.0/thrift.${osdetector.classifier}"
     sourceDir "$projectDir/src/main/thrift"
     outputDir layout.buildDirectory.dir("gen-src")
+    autoDownload true
 
     nowarn true
     strict true

@@ -22,6 +22,8 @@ package com.linecorp.thrift.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -94,6 +96,22 @@ public abstract class CompileThrift extends DefaultTask {
 
     @Input
     public abstract MapProperty<String, String> getGenerators();
+
+    @Input
+    @Optional
+    public abstract Property<Boolean> getAutoDownload();
+
+    @Input
+    @Optional
+    public abstract Property<String> getThriftVersion();
+
+    @Input
+    @Optional
+    public abstract Property<String> getThriftRepository();
+
+    @InputFiles
+    @Optional
+    public abstract DirectoryProperty getLocalBinaryDir();
 
     @Inject
     public abstract ExecOperations getExecOperations();
@@ -171,8 +189,9 @@ public abstract class CompileThrift extends DefaultTask {
 
     void compile(String source) {
         final File outputDirFile = getOutputDir().getAsFile().get();
+        final String thriftExecutable = resolveThriftExecutable();
         final List<String> cmdLine = new ArrayList<>(
-                Arrays.asList(getThriftExecutable().getOrElse("thrift"),
+                Arrays.asList(thriftExecutable,
                               getCreateGenFolder().getOrElse(true) ? "-o" : "-out",
                               outputDirFile.getAbsolutePath()));
         getGenerators().get().forEach((key, value) -> {
@@ -215,6 +234,31 @@ public abstract class CompileThrift extends DefaultTask {
         final int exitCode = result.getExitValue();
         if (exitCode != 0) {
             throw new GradleException("Failed to compile " + source + ", exit=" + exitCode);
+        }
+    }
+
+    private String resolveThriftExecutable() {
+        final String configuredExecutable = getThriftExecutable().getOrElse("thrift");
+
+        if (!"thrift".equals(configuredExecutable) || !getAutoDownload().getOrElse(false)) {
+            return configuredExecutable;
+        }
+
+        try {
+            final Object osdetector = getProject().getExtensions().getByName("osdetector");
+            final Method getClassifier = osdetector.getClass().getMethod("getClassifier");
+            final String classifier = (String) getClassifier.invoke(osdetector);
+            final ThriftBinaryDownloader downloader = new ThriftBinaryDownloader(
+                    getLogger(),
+                    getThriftRepository().getOrElse(ThriftPlugin.DEFAULT_THRIFT_REPOSITORY),
+                    getThriftVersion().getOrElse(ThriftPlugin.DEFAULT_THRIFT_VERSION),
+                    getLocalBinaryDir().getAsFile().get(),
+                    classifier
+            );
+            final File downloadedBinary = downloader.downloadBinary();
+            return downloadedBinary.getAbsolutePath();
+        } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+            throw new GradleException("Failed to determine thrift executable", e);
         }
     }
 }

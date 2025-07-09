@@ -63,6 +63,10 @@ You can use thrift extension to configure the added compileThrift task.
 | debug              | boolean             | false                                                                           |
 | createGenFolder    | boolean             | true                                                                            |
 | autoDetectPlugin   | boolean             | true                                                                            |
+| autoDownload       | boolean             | false                                                                           |
+| thriftVersion      | String              | 0.17                                                                            |
+| thriftRepository   | String              | https://raw.githubusercontent.com/line/gradle-scripts/587453b11b7c2bc43fdc0b1a5f5e9e3ad5a5a8ad/lib/thrift |
+| localBinaryDir     | File                | _buildDir_/thrift-binaries                                                      |
 
 If createGenFolder is set to false, no gen-* folder will be created.
 
@@ -89,6 +93,28 @@ compileThrift {
     generator 'java', 'private-members'
 }
 ```
+
+### Auto Thrift Binary Download
+
+By default, this plugin automatically downloads the appropriate thrift compiler binary based on your operating system and architecture. You can configure this behavior using the following properties:
+
+- `autoDownload`: Set to `true` to enable auto-download, `false` to use the system's thrift executable (default)
+- `thriftVersion`: Version of thrift binary to download (default: `0.17`)
+- `thriftRepository`: Repository URL to download thrift binaries from
+- `localBinaryDir`: Directory where downloaded thrift binaries are stored (default: `build/thrift-binaries`)
+
+#### Supported Platforms
+
+The auto-download feature supports the following operating systems and architectures:
+
+| Operating System | Architecture  | Binary Format         |
+|------------------|---------------|----------------------|
+| Linux            | x86_64/amd64  | linux-x86_64         |
+| Linux            | aarch64/arm64 | linux-aarch_64       |
+| macOS (OSX)      | x86_64/amd64  | osx-x86_64           |
+| macOS (OSX)      | aarch64/arm64 | osx-aarch_64         |
+| Windows          | x86_64/amd64  | windows-x86_64.exe   |
+| Windows          | aarch64/arm64 | windows-aarch_64.exe |
 
 ### Creating a custom task by extending CompileThrift
 
